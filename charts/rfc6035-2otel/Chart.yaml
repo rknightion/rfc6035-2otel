@@ -1,0 +1,21 @@
+apiVersion: v2
+name: rfc6035-2otel
+description: Receive Poly RTCP-XR SIP PUBLISH reports over UDP and export metrics and logs over OTLP.
+type: application
+version: 0.0.0
+appVersion: 0.0.0
+home: https://github.com/rknightion/rfc6035-2otel
+sources:
+  - https://github.com/rknightion/rfc6035-2otel
+keywords:
+  - poly
+  - sip
+  - rfc6035
+  - otel
+  - otlp
+  - udp
+maintainers:
+  - name: rknightion
+annotations:
+  artifacthub.io/category: monitoring-logging
+  artifacthub.io/license: AGPL-3.0

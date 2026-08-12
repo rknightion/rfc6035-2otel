@@ -1,0 +1,121 @@
+# Container image settings.
+image:
+  # OCI image repository.
+  repository: ghcr.io/rknightion/rfc6035-2otel
+  # Image tag; empty uses Chart.appVersion.
+  tag: ""
+  # Kubernetes image pull policy.
+  pullPolicy: IfNotPresent
+# imagePullSecrets is a list of Secret references for private image pulls.
+imagePullSecrets: []
+
+# The UDP listener is stateful only in memory; one replica avoids duplicate
+# listeners and is the normal deployment shape.
+replicaCount: 1
+# nameOverride changes the chart name component in generated resource names.
+nameOverride: ""
+# fullnameOverride sets the complete generated resource name.
+fullnameOverride: ""
+
+# Service settings for inbound SIP PUBLISH UDP traffic.
+service:
+  # Use LoadBalancer for direct off-cluster traffic where supported. ClusterIP
+  # works only for in-cluster senders; NodePort requires callers to use node IPs.
+  type: LoadBalancer
+  # External Service port; the target is config.listen.port.
+  port: 5060
+  # For LoadBalancer and NodePort, Local can retain the original source IP but
+  # sends traffic only to nodes with ready local endpoints. Cluster is the
+  # usual cross-node balancing setting and may obscure the source IP.
+  externalTrafficPolicy: Local
+  # Provider-specific Service annotations.
+  annotations: {}
+  # Requested load-balancer address when the implementation supports it.
+  loadBalancerIP: ""
+  # Allowed client CIDRs for a supporting load-balancer implementation.
+  loadBalancerSourceRanges: []
+  # Fixed NodePort when service.type is NodePort or LoadBalancer; null allocates one.
+  nodePort: null
+
+serviceAccount:
+  # Create a dedicated ServiceAccount.
+  create: true
+  # ServiceAccount name; empty uses the generated full name.
+  name: ""
+  # Do not mount a Kubernetes API token into the collector pod.
+  automountServiceAccountToken: false
+
+# Extra Pod metadata annotations and labels.
+podAnnotations: {}
+podLabels: {}
+# Pod-level Linux security context.
+podSecurityContext:
+  # Require an unprivileged Linux user.
+  runAsNonRoot: true
+  # Numeric user and group used by the process.
+  runAsUser: 65532
+  runAsGroup: 65532
+  # Group applied to mounted volumes and its ownership-change behavior.
+  fsGroup: 65532
+  fsGroupChangePolicy: OnRootMismatch
+  # Runtime-default seccomp profile for all containers.
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  # Prevent privilege gain and require a read-only root filesystem.
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  # Match the Pod's unprivileged user and group.
+  runAsUser: 65532
+  runAsGroup: 65532
+  # Drop every Linux capability.
+  capabilities:
+    drop: ["ALL"]
+resources:
+  # Scheduler resource request.
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  # Container resource limit.
+  limits:
+    cpu: 500m
+    memory: 256Mi
+# nodeSelector, tolerations, and affinity constrain Pod placement.
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Inject non-secret environment variables as Kubernetes EnvVar entries.
+extraEnv: []
+# Mount additional Kubernetes volumes. The collector needs no writable volume.
+extraVolumes: []
+# Extra container volume mounts corresponding to extraVolumes when needed.
+extraVolumeMounts: []
+
+# Non-secret application configuration. The collector auto-detects RFC 6035
+# standard and Poly pre-standard report dialects; no dialect switch is needed.
+config:
+  listen:
+    # UDP bind address inside the Pod.
+    address: "0.0.0.0"
+    # UDP bind port inside the Pod.
+    port: 5060
+  otlp:
+    # Required: base URL for HTTP (the application appends signal paths), or
+    # host:port / URL without a path for gRPC.
+    endpoint: "https://otlp.example.invalid"
+    # Headers can be set here only when non-secret; use extraEnv with
+    # RFC6035_2OTEL_OTLP__HEADERS__<HEADER> for credentials.
+    headers: {}
+    # OTLP transport protocol: http or grpc.
+    protocol: http
+  # Positive duration for SIP retransmission deduplication.
+  dedupe_window: 32s
+  log:
+    # Application log level: debug, info, warn, or error.
+    level: info
+  service:
+    # OpenTelemetry service.name resource attribute.
+    name: rfc6035-2otel
+    # OpenTelemetry service.version resource attribute; empty is permitted.
+    version: ""

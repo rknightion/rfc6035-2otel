@@ -1,0 +1,9 @@
+rfc6035-2otel has been deployed as {{ include "rfc6035-2otel.fullname" . }}.
+
+It accepts only SIP PUBLISH over UDP and exports OTLP metrics and logs. It
+auto-detects RFC 6035 standard and Poly pre-standard report dialects. It does
+not expose syslog, traces, Prometheus, or an HTTP health endpoint.
+
+The Service is {{ .Values.service.type }} on UDP port {{ .Values.service.port }}.
+For off-cluster sources, ensure your Kubernetes implementation provisions or
+routes UDP for the selected Service type.
