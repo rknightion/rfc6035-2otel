@@ -85,6 +85,15 @@ func TestExportMetricsAndLog(t *testing.T) {
 	}
 }
 
+func TestDialectEnumHasOneOwner(t *testing.T) {
+	if got := boundedDialect("Future-Measured-Dialect"); got != "future-measured-dialect" {
+		t.Fatalf("boundedDialect = %q; exporter duplicated the parser enum", got)
+	}
+	if got := boundedDialect("  "); got != "unknown" {
+		t.Fatalf("empty dialect = %q", got)
+	}
+}
+
 type recordingLogExporter struct {
 	mu      sync.Mutex
 	records []sdklog.Record

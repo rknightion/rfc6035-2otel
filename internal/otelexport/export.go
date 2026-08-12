@@ -3,12 +3,12 @@
 //
 // The OpenTelemetry semantic-convention registry has no voice-quality domain,
 // so this package uses the documented vq. prefix. Metrics carry only bounded
-// dimensions: report dialect and type, direction, and jitter kind. Call IDs,
-// network addresses, SIP identities, parsed field values, and other unbounded
-// data are deliberately log-only. A completed call is a point observation, so
-// each metric is a synchronous histogram; this retains distributions without
-// pretending reports are counters. No traces are emitted: a VQ report is not a
-// distributed-trace operation.
+// dimensions: parser-owned closed-enum report dialect and type, direction, and
+// jitter kind. Call IDs, network addresses, SIP identities, parsed field
+// values, and other unbounded data are deliberately log-only. A completed call
+// is a point observation, so each metric is a synchronous histogram; this
+// retains distributions without pretending reports are counters. No traces are
+// emitted: a VQ report is not a distributed-trace operation.
 package otelexport
 
 import (
@@ -212,14 +212,13 @@ func (e *Exporter) logAttributes(report Report) []attribute.KeyValue {
 }
 
 func boundedDialect(value string) string {
-	switch strings.ToLower(value) {
-	case "standard":
-		return "standard"
-	case "prestandard", "pre-standard":
-		return "prestandard"
-	default:
+	// The parser owns the closed dialect enum. Do not duplicate its cases here:
+	// a measured third dialect must remain a one-file parser change.
+	value = strings.ToLower(strings.TrimSpace(value))
+	if value == "" {
 		return "unknown"
 	}
+	return value
 }
 
 func boundedReportType(value string) string {
