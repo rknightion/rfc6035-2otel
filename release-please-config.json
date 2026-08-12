@@ -5,6 +5,7 @@
   "packages": {
     ".": {
       "bump-minor-pre-major": true,
+      "initial-version": "0.1.0",
       "changelog-path": "CHANGELOG.md",
       "package-name": "rfc6035-2otel",
       "extra-files": [
