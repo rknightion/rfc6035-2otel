@@ -1,0 +1,31 @@
+# Camden reference deployment. Keep the sibling config.yaml root-readable and
+# uncommitted; inject OTLP credentials through RFC6035_2OTEL_OTLP__HEADERS__*.
+services:
+  rfc6035-2otel:
+    image: rfc6035-2otel:wave1
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${RFC6035_2OTEL_VERSION:-dev}
+        COMMIT: ${RFC6035_2OTEL_COMMIT:-unknown}
+        BUILD_DATE: ${RFC6035_2OTEL_BUILD_DATE:-unknown}
+    container_name: rfc6035-2otel
+    network_mode: host
+    restart: unless-stopped
+    user: "65532:65532"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    command: ["-config", "/etc/rfc6035-2otel/config.yaml"]
+    environment:
+      RFC6035_2OTEL_OTLP__HEADERS__AUTHORIZATION: ${RFC6035_2OTEL_OTLP__HEADERS__AUTHORIZATION:-}
+    volumes:
+      - ./config.yaml:/etc/rfc6035-2otel/config.yaml:ro
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/rfc6035-2otel", "-healthcheck", "127.0.0.1:5060"]
+      interval: 15s
+      timeout: 3s
+      start_period: 5s
+      retries: 3

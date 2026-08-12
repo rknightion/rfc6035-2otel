@@ -1,0 +1,27 @@
+# Configuration precedence is defaults, this YAML file, then RFC6035_2OTEL_
+# environment variables. Double underscores represent YAML nesting: for example,
+# RFC6035_2OTEL_OTLP__ENDPOINT overrides otlp.endpoint.
+listen:
+  # UDP bind address.
+  address: "0.0.0.0"
+  # UDP bind port.
+  port: 5060
+otlp:
+  # OTLP base endpoint. HTTP appends /v1/metrics and /v1/logs. For gRPC, use
+  # only host:port (or an http[s] URL with no path). This value is required.
+  endpoint: "https://otlp.example.invalid"
+  # Headers sent to the OTLP collector. Use RFC6035_2OTEL_OTLP__HEADERS__<HEADER>
+  # to supply or override one header from the environment.
+  headers: {}
+  # OTLP transport protocol: http or grpc.
+  protocol: "http"
+# Duration for SIP retransmission deduplication. It must be positive.
+dedupe_window: "32s"
+log:
+  # Application log level: debug, info, warn, or error.
+  level: "info"
+service:
+  # OpenTelemetry service.name.
+  name: "rfc6035-2otel"
+  # OpenTelemetry service.version.
+  version: "dev"

@@ -1,0 +1,35 @@
+PUBLISH sip:10.0.0.5:5060 SIP/2.0
+Via: SIP/2.0/UDP 10.0.0.139;branch=z9hG4bKf9b77537C415B9D2
+From: "AAISP Mobile" <sip:+441234567890@voiceless.aa.net.uk>;tag=BEDF9595-A9577476
+To: <sip:10.0.0.5:5060>
+CSeq: 1 PUBLISH
+Call-ID: 120de01ffb725a3fbc981a5563139733
+Contact: <sip:+441234567890@10.0.0.139>
+Allow: INVITE,ACK,BYE,CANCEL,OPTIONS,INFO,MESSAGE,SUBSCRIBE,NOTIFY,PRACK,UPDATE,REFER
+Event: vq-rtcpxr
+User-Agent: PolyEdge-Edge_E350-UA/8.6.0.1321
+Accept-Language: en-gb,en;q=0.9
+Max-Forwards: 70
+Expires: 600
+Content-Type: application/vq-rtcpxr
+Content-Length: 833
+
+VQSessionReport: CallTerm
+CallID:151a6cd90d16552a7ef51db8b1139733
+LocalID: "AAISP Mobile" <sip:+441234567890@voiceless.aa.net.uk>
+RemoteID: <sip:1571@voiceless.aa.net.uk>
+OrigID: "AAISP Mobile" <sip:+441234567890@voiceless.aa.net.uk>
+LocalGroup: Home
+LocalAddr:IP= 10.0.0.139 PORT=2224 SSRC=3744842397
+LocalMAC: 482567139733
+RemoteAddr:IP= 81.187.30.116 PORT=32032 SSRC=383880463
+LocalMetrics:
+TimeStamps:START=2026-08-12T17:20:49Z STOP=2026-08-12T17:21:28Z
+SessionDesc:PT=8 PD=G.711 A-Law PPS=50 SSUP=off
+JitterBuffer:JBA=3 JBR=5 JBN=30 JBM=190 JBX=240
+PacketLoss:NLR=0.0 JDR=0.0
+BurstGapLoss:BLD=0.0 BD=0 GLD=0.0 GD=39850 GMIN=16
+Delay:RTD=0 ESD=55 IAJ=0
+Signal:RERL=127
+QualityEst:RLQ=93 RCQ=93 MOSLQ=4.1 MOSCQ=4.1
+DialogID:151a6cd90d16552a7ef51db8b1139733;to-tag=2026081218204800005;from-tag=1B9D70AC-61EA0A10

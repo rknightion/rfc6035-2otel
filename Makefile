@@ -1,24 +1,38 @@
-.PHONY: build test vet lint tidy tidy-check check fmt docker
+GO ?= go
+GOFLAGS ?= -mod=readonly
+export GOFLAGS
+
+BINARY := rfc6035-2otel
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null || echo unknown)
+BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+LDFLAGS := -s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.buildDate=$(BUILD_DATE)
+
+.PHONY: build test vet fmt fmt-check tidy tidy-check check docker
 
 build:
-	go build -o bin/rfc6035-2otel ./cmd/rfc6035-2otel
+	$(GO) build -trimpath -ldflags "$(LDFLAGS)" -o bin/$(BINARY) ./cmd/$(BINARY)
 
 test:
-	go test ./...
+	$(GO) test -race ./...
 
 vet:
-	go vet ./...
+	$(GO) vet ./...
 
 fmt:
-	gofmt -l -w .
+	gofmt -w $$(find . -name '*.go' -not -path './vendor/*')
+
+fmt-check:
+	@test -z "$$(gofmt -l $$(find . -name '*.go' -not -path './vendor/*'))" || \
+		{ echo "Go files require formatting"; gofmt -l $$(find . -name '*.go' -not -path './vendor/*'); exit 1; }
 
 tidy:
-	go mod tidy
+	$(GO) mod tidy
 
 tidy-check:
-	go mod tidy -diff
+	$(GO) mod tidy -diff
 
 docker:
-	docker build -t rfc6035-2otel:dev .
+	docker build --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --build-arg BUILD_DATE=$(BUILD_DATE) -t $(BINARY):dev .
 
-check: vet test tidy-check
+check: fmt-check vet test tidy-check build

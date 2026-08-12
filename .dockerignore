@@ -1,0 +1,9 @@
+.git
+.github
+bin
+codex
+config.yaml
+config.local.yaml
+deploy/config.yaml
+.env
+*.out
