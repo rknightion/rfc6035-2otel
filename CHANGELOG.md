@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/rknightion/rfc6035-2otel/compare/v0.1.0...v0.1.1) (2026-08-12)
+
+
+### Bug Fixes
+
+* preserve build-info series name ([1259341](https://github.com/rknightion/rfc6035-2otel/commit/125934174e6c409ffbeb4f0389570ee73689e258)), closes [#18](https://github.com/rknightion/rfc6035-2otel/issues/18)
+
 ## 0.1.0 (2026-08-12)
 
 
