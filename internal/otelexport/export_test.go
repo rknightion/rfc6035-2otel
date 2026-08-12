@@ -2,6 +2,8 @@ package otelexport
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 	"testing"
 
@@ -19,20 +21,30 @@ func TestExportMetricsAndLog(t *testing.T) {
 	lp := sdklog.NewLoggerProvider(sdklog.WithProcessor(sdklog.NewSimpleProcessor(logs)))
 	t.Cleanup(func() { _ = mp.Shutdown(context.Background()); _ = lp.Shutdown(context.Background()) })
 
-	exporter, err := New(mp, lp)
+	exporter, err := New(mp, lp, func(address string) string {
+		if address == "10.0.0.139" {
+			return "deskie"
+		}
+		return "unknown"
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	mos := 4.2
-	jitter := 7.0
-	packetLoss := 0.5
+	jitter := 250.0
+	packetLoss := 2.0
+	rFactor := 80.0
+	discardRate := 2.0
+	delay := 250.0
 	exporter.Export(context.Background(), Report{
-		Dialect: "standard", ReportType: "VQSessionReport", CallID: "call-123", SourceAddress: "192.0.2.5",
+		Dialect: "standard", ReportType: "VQSessionReport", CallID: "call-123", SourceAddress: "10.0.0.139", SourcePort: 5060,
+		RawReport: "VQSessionReport\r\nCall-ID: call-123\r\nIAJ=250\r\nPL=2\r\n",
 		Fields: map[string]string{
 			"X-Vendor": "kept", "X_Vendor": "also-kept", "X_Vendor_X": "third-kept",
 			"Authorization": "never-export",
 		},
-		LocalMOSLQ: &mos, LocalIAJ: &jitter, LocalPacketLoss: &packetLoss,
+		LocalMOSLQ: &mos, LocalMOSCQ: &mos, LocalIAJ: &jitter, LocalPacketLoss: &packetLoss,
+		LocalRFactorLQ: &rFactor, LocalRFactorCQ: &rFactor, LocalDiscardRate: &discardRate, LocalRTD: &delay, LocalOneWayDelay: &delay,
 	})
 
 	var got metricdata.ResourceMetrics
@@ -40,22 +52,45 @@ func TestExportMetricsAndLog(t *testing.T) {
 		t.Fatal(err)
 	}
 	metrics := flattenMetrics(got)
-	assertHistogram(t, metrics, "vq.call.mos_lq", "1", map[string]string{
-		"vq.report.dialect": "standard", "vq.report.type": "VQSessionReport", "vq.direction": "local",
+	assertHistogram(t, metrics, "rfc6035.call.mos_lq", "1", []float64{1, 1.5, 2, 2.5, 3, 3.5, 3.8, 4, 4.2, 4.4, 5}, 4.2, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.sender.name": "deskie",
 	})
-	assertHistogram(t, metrics, "vq.call.jitter", "ms", map[string]string{
-		"vq.report.dialect": "standard", "vq.report.type": "VQSessionReport", "vq.direction": "local", "vq.jitter.type": "IAJ",
+	assertHistogram(t, metrics, "rfc6035.call.mos_cq", "1", []float64{1, 1.5, 2, 2.5, 3, 3.5, 3.8, 4, 4.2, 4.4, 5}, 4.2, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.sender.name": "deskie",
 	})
-	assertHistogram(t, metrics, "vq.call.packet_loss", "%", map[string]string{
-		"vq.report.dialect": "standard", "vq.report.type": "VQSessionReport", "vq.direction": "local",
+	assertHistogram(t, metrics, "rfc6035.call.jitter", "s", []float64{0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1}, 0.25, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.jitter.kind": "interarrival", "rfc6035.sender.name": "deskie",
 	})
-	if _, ok := metrics["vq.call.mos_cq"]; ok {
-		t.Fatal("nil MOS-CQ emitted a metric")
-	}
-	for _, metric := range metrics {
+	assertHistogram(t, metrics, "rfc6035.call.packet_loss", "1", []float64{0, 0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1}, 0.02, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.sender.name": "deskie",
+	})
+	assertHistogram(t, metrics, "rfc6035.call.r_factor_lq", "1", []float64{0, 20, 40, 50, 60, 70, 80, 90, 94, 100}, 80, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.sender.name": "deskie",
+	})
+	assertHistogram(t, metrics, "rfc6035.call.r_factor_cq", "1", []float64{0, 20, 40, 50, 60, 70, 80, 90, 94, 100}, 80, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.sender.name": "deskie",
+	})
+	assertHistogram(t, metrics, "rfc6035.call.discard_rate", "1", []float64{0, 0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1}, 0.02, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.sender.name": "deskie",
+	})
+	assertHistogram(t, metrics, "rfc6035.call.round_trip_delay", "s", []float64{0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1}, 0.25, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.sender.name": "deskie",
+	})
+	assertHistogram(t, metrics, "rfc6035.call.one_way_delay", "s", []float64{0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1}, 0.25, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.sender.name": "deskie",
+	})
+	for name, metric := range metrics {
+		if strings.Contains(name, "vq"+".") {
+			t.Fatalf("legacy metric emitted: %s", name)
+		}
 		for _, point := range metric.Data.(metricdata.Histogram[float64]).DataPoints {
-			if point.Attributes.HasValue(attribute.Key("vq.report.call_id")) {
+			if point.Attributes.HasValue(attribute.Key("rfc6035.report.call_id")) {
 				t.Fatal("call ID appeared on metric")
+			}
+			for key := range attributeSet(point.Attributes) {
+				if !strings.Contains(key, ".") {
+					t.Fatalf("metric emitted unnamespaced attribute %q", key)
+				}
 			}
 		}
 	}
@@ -67,21 +102,63 @@ func TestExportMetricsAndLog(t *testing.T) {
 	if record.Severity() != log.SeverityInfo {
 		t.Fatalf("severity = %v, want INFO", record.Severity())
 	}
-	if record.Body().AsString() != "voice quality report" {
+	if record.EventName() != "rfc6035.report.received" {
+		t.Fatalf("event name = %q", record.EventName())
+	}
+	if record.Body().AsString() != "VQSessionReport\r\nCall-ID: call-123\r\nIAJ=250\r\nPL=2\r\n" {
 		t.Fatalf("body = %q", record.Body().AsString())
 	}
 	attrs := recordAttributes(record)
 	for key, want := range map[string]string{
-		"event.name": "vq.report.received", "vq.report.call_id": "call-123", "client.address": "192.0.2.5",
-		"vq.field.x_vendor": "kept", "vq.field.x_vendor_x": "also-kept",
-		"vq.field.x_vendor_x_x": "third-kept",
+		"rfc6035.report.call_id": "call-123", "rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport",
+		"rfc6035.sender.name": "deskie", "client.address": "10.0.0.139", "client.port": "5060",
+		"network.transport": "udp", "network.protocol.name": "sip",
+		"rfc6035.field.x_vendor": "kept", "rfc6035.field.x_vendor.original_key": "X-Vendor",
+		"rfc6035.field.x_vendor_x": "also-kept", "rfc6035.field.x_vendor_x.original_key": "X_Vendor",
+		"rfc6035.field.x_vendor_x_x": "third-kept", "rfc6035.field.x_vendor_x_x.original_key": "X_Vendor_X",
 	} {
 		if got := attrs[key]; got != want {
 			t.Errorf("attribute %s = %q, want %q", key, got, want)
 		}
 	}
-	if _, found := attrs["vq.field.authorization"]; found {
+	if _, found := attrs["event.name"]; found {
+		t.Error("event.name was emitted as an attribute")
+	}
+	if _, found := attrs["rfc6035.field.authorization"]; found {
 		t.Error("secret field was logged")
+	}
+	for key := range attrs {
+		if !strings.Contains(key, ".") {
+			t.Fatalf("log emitted unnamespaced attribute %q", key)
+		}
+	}
+}
+
+func TestExportUnknownSenderAndNormalFieldKey(t *testing.T) {
+	reader := sdkmetric.NewManualReader()
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	logs := &recordingLogExporter{}
+	lp := sdklog.NewLoggerProvider(sdklog.WithProcessor(sdklog.NewSimpleProcessor(logs)))
+	t.Cleanup(func() { _ = mp.Shutdown(context.Background()); _ = lp.Shutdown(context.Background()) })
+	exporter, err := New(mp, lp, func(string) string { return "" })
+	if err != nil {
+		t.Fatal(err)
+	}
+	mos := 4.0
+	exporter.Export(context.Background(), Report{Dialect: "standard", ReportType: "VQSessionReport", SourceAddress: "192.0.2.1", Fields: map[string]string{"normal_key": "retained"}, LocalMOSLQ: &mos})
+	var got metricdata.ResourceMetrics
+	if err := reader.Collect(context.Background(), &got); err != nil {
+		t.Fatal(err)
+	}
+	assertHistogram(t, flattenMetrics(got), "rfc6035.call.mos_lq", "1", []float64{1, 1.5, 2, 2.5, 3, 3.5, 3.8, 4, 4.2, 4.4, 5}, 4, map[string]string{
+		"rfc6035.report.dialect": "standard", "rfc6035.report.type": "VQSessionReport", "rfc6035.report.side": "local", "rfc6035.sender.name": "unknown",
+	})
+	attrs := recordAttributes(logs.records[0])
+	if got := attrs["rfc6035.field.normal_key"]; got != "retained" {
+		t.Fatalf("normal key = %q", got)
+	}
+	if _, found := attrs["rfc6035.field.normal_key.original_key"]; found {
+		t.Fatal("normal key unnecessarily retained original key")
 	}
 }
 
@@ -120,7 +197,7 @@ func flattenMetrics(resource metricdata.ResourceMetrics) map[string]metricdata.M
 	return result
 }
 
-func assertHistogram(t *testing.T, metrics map[string]metricdata.Metrics, name, unit string, want map[string]string) {
+func assertHistogram(t *testing.T, metrics map[string]metricdata.Metrics, name, unit string, boundaries []float64, value float64, want map[string]string) {
 	t.Helper()
 	metric, found := metrics[name]
 	if !found {
@@ -136,7 +213,14 @@ func assertHistogram(t *testing.T, metrics map[string]metricdata.Metrics, name, 
 	if len(histogram.DataPoints) != 1 {
 		t.Fatalf("metric %s points = %d, want 1", name, len(histogram.DataPoints))
 	}
-	got := attributeSet(histogram.DataPoints[0].Attributes)
+	point := histogram.DataPoints[0]
+	if point.Sum != value {
+		t.Fatalf("metric %s sum = %v, want %v", name, point.Sum, value)
+	}
+	if fmt.Sprint(point.Bounds) != fmt.Sprint(boundaries) {
+		t.Fatalf("metric %s bounds = %v, want %v", name, point.Bounds, boundaries)
+	}
+	got := attributeSet(point.Attributes)
 	if len(got) != len(want) {
 		t.Fatalf("metric %s attributes = %#v, want %#v", name, got, want)
 	}
@@ -156,6 +240,9 @@ func attributeSet(set attribute.Set) map[string]string {
 }
 func recordAttributes(record sdklog.Record) map[string]string {
 	result := map[string]string{}
-	record.WalkAttributes(func(kv attribute.KeyValue) bool { result[string(kv.Key)] = kv.Value.AsString(); return true })
+	record.WalkAttributes(func(kv attribute.KeyValue) bool {
+		result[string(kv.Key)] = fmt.Sprint(kv.Value.AsInterface())
+		return true
+	})
 	return result
 }

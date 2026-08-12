@@ -55,3 +55,33 @@ func TestLoadRejectsUnknownYAMLKey(t *testing.T) {
 		t.Fatalf("error = %v", err)
 	}
 }
+
+func TestSendersLookupAndValidation(t *testing.T) {
+	cfg := Default()
+	cfg.OTLP.Endpoint = "https://example.invalid"
+	cfg.Senders = []Sender{
+		{Address: "10.0.0.139", Name: "deskie"},
+		{Address: "10.0.50.175", Name: "extra"},
+	}
+	if err := cfg.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	if got := cfg.SenderName("10.0.0.139"); got != "deskie" {
+		t.Fatalf("known sender = %q", got)
+	}
+	if got := cfg.SenderName("192.0.2.1"); got != "unknown" {
+		t.Fatalf("unknown sender = %q", got)
+	}
+
+	for _, senders := range [][]Sender{
+		{{Address: "", Name: "deskie"}},
+		{{Address: "10.0.0.139", Name: ""}},
+		{{Address: "10.0.0.139", Name: "deskie"}, {Address: "10.0.0.139", Name: "extra"}},
+		{{Address: "10.0.0.139", Name: "deskie"}, {Address: "10.0.50.175", Name: "deskie"}},
+	} {
+		cfg.Senders = senders
+		if err := cfg.Validate(); err == nil {
+			t.Fatalf("Validate(%#v) succeeded", senders)
+		}
+	}
+}

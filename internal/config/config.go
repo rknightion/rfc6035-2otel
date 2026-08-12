@@ -23,6 +23,7 @@ type Config struct {
 	DedupeWindow time.Duration `yaml:"dedupe_window"`
 	Log          LogConfig     `yaml:"log"`
 	Service      ServiceConfig `yaml:"service"`
+	Senders      []Sender      `yaml:"senders"`
 }
 
 type ListenConfig struct {
@@ -43,6 +44,13 @@ type LogConfig struct {
 type ServiceConfig struct {
 	Name    string `yaml:"name"`
 	Version string `yaml:"version"`
+}
+
+// Sender gives a stable, bounded name to a report source address. Names become
+// metric attributes, so the map must remain a small, explicit configuration.
+type Sender struct {
+	Address string `yaml:"address"`
+	Name    string `yaml:"name"`
 }
 
 func Default() Config {
@@ -174,5 +182,37 @@ func (c Config) Validate() error {
 	if strings.TrimSpace(c.Service.Version) == "" {
 		return fmt.Errorf("service.version is required")
 	}
+	seenAddresses := make(map[string]struct{}, len(c.Senders))
+	seenNames := make(map[string]struct{}, len(c.Senders))
+	for i, sender := range c.Senders {
+		address := strings.TrimSpace(sender.Address)
+		name := strings.TrimSpace(sender.Name)
+		if address == "" {
+			return fmt.Errorf("senders[%d].address is required", i)
+		}
+		if name == "" {
+			return fmt.Errorf("senders[%d].name is required", i)
+		}
+		if _, found := seenAddresses[address]; found {
+			return fmt.Errorf("senders[%d].address duplicates %q", i, address)
+		}
+		seenAddresses[address] = struct{}{}
+		if _, found := seenNames[name]; found {
+			return fmt.Errorf("senders[%d].name duplicates %q", i, name)
+		}
+		seenNames[name] = struct{}{}
+	}
 	return nil
+}
+
+// SenderName returns the bounded configured sender name for address. Unknown
+// sources intentionally collapse to one value to prevent metric cardinality.
+func (c Config) SenderName(address string) string {
+	address = strings.TrimSpace(address)
+	for _, sender := range c.Senders {
+		if strings.TrimSpace(sender.Address) == address {
+			return strings.TrimSpace(sender.Name)
+		}
+	}
+	return "unknown"
 }

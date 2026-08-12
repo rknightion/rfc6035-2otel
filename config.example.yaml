@@ -17,6 +17,13 @@ otlp:
   protocol: "http"
 # Duration for SIP retransmission deduplication. It must be positive.
 dedupe_window: "32s"
+# Bounded source-address registry. Sender names are attached to metrics and logs;
+# reports from any address not listed here receive rfc6035.sender.name=unknown.
+senders:
+  - address: "10.0.0.139"
+    name: "deskie"
+  - address: "10.0.50.175"
+    name: "extra"
 log:
   # Application log level: debug, info, warn, or error.
   level: "info"

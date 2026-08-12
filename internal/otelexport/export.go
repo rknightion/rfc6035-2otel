@@ -2,7 +2,7 @@
 // metrics and logs.
 //
 // The OpenTelemetry semantic-convention registry has no voice-quality domain,
-// so this package uses the documented vq. prefix. Metrics carry only bounded
+// so this package uses the documented rfc6035. prefix. Metrics carry only bounded
 // dimensions: parser-owned closed-enum report dialect and type, direction, and
 // jitter kind. Call IDs, network addresses, SIP identities, parsed field
 // values, and other unbounded data are deliberately log-only. A completed call
@@ -33,6 +33,8 @@ type Report struct {
 	ReportType    string
 	CallID        string
 	SourceAddress string
+	SourcePort    int
+	RawReport     string
 	Fields        map[string]string
 
 	LocalMOSLQ  *float64
@@ -62,7 +64,8 @@ type Report struct {
 // Exporter owns the synchronous instruments and native OTLP logger used for
 // report observations. It is safe for concurrent use.
 type Exporter struct {
-	logger log.Logger
+	logger     log.Logger
+	senderName func(string) string
 
 	mosLQ, mosCQ, rFactorLQ, rFactorCQ  metric.Float64Histogram
 	packetLoss, discardRate             metric.Float64Histogram
@@ -72,7 +75,7 @@ type Exporter struct {
 // New creates an exporter using caller-owned providers. This makes resource
 // configuration and SDK lifecycle the application's responsibility and permits
 // in-memory SDK providers in tests.
-func New(meterProvider metric.MeterProvider, loggerProvider log.LoggerProvider) (*Exporter, error) {
+func New(meterProvider metric.MeterProvider, loggerProvider log.LoggerProvider, senderNames ...func(string) string) (*Exporter, error) {
 	if meterProvider == nil {
 		return nil, errors.New("otelexport: nil meter provider")
 	}
@@ -80,50 +83,58 @@ func New(meterProvider metric.MeterProvider, loggerProvider log.LoggerProvider) 
 		return nil, errors.New("otelexport: nil logger provider")
 	}
 	meter := meterProvider.Meter(instrumentationName)
-	newHistogram := func(name, unit string) (metric.Float64Histogram, error) {
-		return meter.Float64Histogram(name, metric.WithUnit(unit))
+	newHistogram := func(name, unit string, boundaries []float64) (metric.Float64Histogram, error) {
+		return meter.Float64Histogram(name, metric.WithUnit(unit), metric.WithExplicitBucketBoundaries(boundaries...))
+	}
+	mosBounds := []float64{1, 1.5, 2, 2.5, 3, 3.5, 3.8, 4, 4.2, 4.4, 5}
+	rFactorBounds := []float64{0, 20, 40, 50, 60, 70, 80, 90, 94, 100}
+	lossBounds := []float64{0, 0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1}
+	delayBounds := []float64{0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1}
+
+	mosLQ, err := newHistogram("rfc6035.call.mos_lq", "1", mosBounds)
+	if err != nil {
+		return nil, err
+	}
+	mosCQ, err := newHistogram("rfc6035.call.mos_cq", "1", mosBounds)
+	if err != nil {
+		return nil, err
+	}
+	rFactorLQ, err := newHistogram("rfc6035.call.r_factor_lq", "1", rFactorBounds)
+	if err != nil {
+		return nil, err
+	}
+	rFactorCQ, err := newHistogram("rfc6035.call.r_factor_cq", "1", rFactorBounds)
+	if err != nil {
+		return nil, err
+	}
+	packetLoss, err := newHistogram("rfc6035.call.packet_loss", "1", lossBounds)
+	if err != nil {
+		return nil, err
+	}
+	discardRate, err := newHistogram("rfc6035.call.discard_rate", "1", lossBounds)
+	if err != nil {
+		return nil, err
+	}
+	roundTripDelay, err := newHistogram("rfc6035.call.round_trip_delay", "s", delayBounds)
+	if err != nil {
+		return nil, err
+	}
+	oneWayDelay, err := newHistogram("rfc6035.call.one_way_delay", "s", delayBounds)
+	if err != nil {
+		return nil, err
+	}
+	jitter, err := newHistogram("rfc6035.call.jitter", "s", delayBounds)
+	if err != nil {
+		return nil, err
 	}
 
-	mosLQ, err := newHistogram("vq.call.mos_lq", "1")
-	if err != nil {
-		return nil, err
+	senderName := func(string) string { return "unknown" }
+	if len(senderNames) > 0 && senderNames[0] != nil {
+		senderName = senderNames[0]
 	}
-	mosCQ, err := newHistogram("vq.call.mos_cq", "1")
-	if err != nil {
-		return nil, err
-	}
-	rFactorLQ, err := newHistogram("vq.call.r_factor_lq", "1")
-	if err != nil {
-		return nil, err
-	}
-	rFactorCQ, err := newHistogram("vq.call.r_factor_cq", "1")
-	if err != nil {
-		return nil, err
-	}
-	packetLoss, err := newHistogram("vq.call.packet_loss", "%")
-	if err != nil {
-		return nil, err
-	}
-	discardRate, err := newHistogram("vq.call.discard_rate", "%")
-	if err != nil {
-		return nil, err
-	}
-	roundTripDelay, err := newHistogram("vq.call.round_trip_delay", "ms")
-	if err != nil {
-		return nil, err
-	}
-	oneWayDelay, err := newHistogram("vq.call.one_way_delay", "ms")
-	if err != nil {
-		return nil, err
-	}
-	jitter, err := newHistogram("vq.call.jitter", "ms")
-	if err != nil {
-		return nil, err
-	}
-
 	return &Exporter{
-		logger: loggerProvider.Logger(instrumentationName),
-		mosLQ:  mosLQ, mosCQ: mosCQ, rFactorLQ: rFactorLQ, rFactorCQ: rFactorCQ,
+		logger: loggerProvider.Logger(instrumentationName), senderName: senderName,
+		mosLQ: mosLQ, mosCQ: mosCQ, rFactorLQ: rFactorLQ, rFactorCQ: rFactorCQ,
 		packetLoss: packetLoss, discardRate: discardRate,
 		roundTripDelay: roundTripDelay, oneWayDelay: oneWayDelay, jitter: jitter,
 	}, nil
@@ -133,61 +144,66 @@ func New(meterProvider metric.MeterProvider, loggerProvider log.LoggerProvider) 
 // log record for report. It does not create spans.
 func (e *Exporter) Export(ctx context.Context, report Report) {
 	base := []attribute.KeyValue{
-		attribute.String("vq.report.dialect", boundedDialect(report.Dialect)),
-		attribute.String("vq.report.type", boundedReportType(report.ReportType)),
+		attribute.String("rfc6035.report.dialect", boundedDialect(report.Dialect)),
+		attribute.String("rfc6035.report.type", boundedReportType(report.ReportType)),
+		attribute.String("rfc6035.sender.name", e.boundedSenderName(report.SourceAddress)),
 	}
-	e.recordDirection(ctx, e.mosLQ, report.LocalMOSLQ, base, "local")
-	e.recordDirection(ctx, e.mosLQ, report.RemoteMOSLQ, base, "remote")
-	e.recordDirection(ctx, e.mosCQ, report.LocalMOSCQ, base, "local")
-	e.recordDirection(ctx, e.mosCQ, report.RemoteMOSCQ, base, "remote")
-	e.recordDirection(ctx, e.rFactorLQ, report.LocalRFactorLQ, base, "local")
-	e.recordDirection(ctx, e.rFactorLQ, report.RemoteRFactorLQ, base, "remote")
-	e.recordDirection(ctx, e.rFactorCQ, report.LocalRFactorCQ, base, "local")
-	e.recordDirection(ctx, e.rFactorCQ, report.RemoteRFactorCQ, base, "remote")
-	e.recordDirection(ctx, e.packetLoss, report.LocalPacketLoss, base, "local")
-	e.recordDirection(ctx, e.packetLoss, report.RemotePacketLoss, base, "remote")
-	e.recordDirection(ctx, e.discardRate, report.LocalDiscardRate, base, "local")
-	e.recordDirection(ctx, e.discardRate, report.RemoteDiscardRate, base, "remote")
-	e.recordDirection(ctx, e.roundTripDelay, report.LocalRTD, base, "local")
-	e.recordDirection(ctx, e.roundTripDelay, report.RemoteRTD, base, "remote")
-	e.recordDirection(ctx, e.oneWayDelay, report.LocalOneWayDelay, base, "local")
-	e.recordDirection(ctx, e.oneWayDelay, report.RemoteOneWayDelay, base, "remote")
-	e.recordJitter(ctx, report.LocalIAJ, base, "local", "IAJ")
-	e.recordJitter(ctx, report.RemoteIAJ, base, "remote", "IAJ")
-	e.recordJitter(ctx, report.LocalMAJ, base, "local", "MAJ")
-	e.recordJitter(ctx, report.RemoteMAJ, base, "remote", "MAJ")
+	e.recordDirection(ctx, e.mosLQ, report.LocalMOSLQ, base, "local", 1)
+	e.recordDirection(ctx, e.mosLQ, report.RemoteMOSLQ, base, "remote", 1)
+	e.recordDirection(ctx, e.mosCQ, report.LocalMOSCQ, base, "local", 1)
+	e.recordDirection(ctx, e.mosCQ, report.RemoteMOSCQ, base, "remote", 1)
+	e.recordDirection(ctx, e.rFactorLQ, report.LocalRFactorLQ, base, "local", 1)
+	e.recordDirection(ctx, e.rFactorLQ, report.RemoteRFactorLQ, base, "remote", 1)
+	e.recordDirection(ctx, e.rFactorCQ, report.LocalRFactorCQ, base, "local", 1)
+	e.recordDirection(ctx, e.rFactorCQ, report.RemoteRFactorCQ, base, "remote", 1)
+	e.recordDirection(ctx, e.packetLoss, report.LocalPacketLoss, base, "local", 0.01)
+	e.recordDirection(ctx, e.packetLoss, report.RemotePacketLoss, base, "remote", 0.01)
+	e.recordDirection(ctx, e.discardRate, report.LocalDiscardRate, base, "local", 0.01)
+	e.recordDirection(ctx, e.discardRate, report.RemoteDiscardRate, base, "remote", 0.01)
+	e.recordDirection(ctx, e.roundTripDelay, report.LocalRTD, base, "local", 0.001)
+	e.recordDirection(ctx, e.roundTripDelay, report.RemoteRTD, base, "remote", 0.001)
+	e.recordDirection(ctx, e.oneWayDelay, report.LocalOneWayDelay, base, "local", 0.001)
+	e.recordDirection(ctx, e.oneWayDelay, report.RemoteOneWayDelay, base, "remote", 0.001)
+	e.recordJitter(ctx, report.LocalIAJ, base, "local", "interarrival")
+	e.recordJitter(ctx, report.RemoteIAJ, base, "remote", "interarrival")
+	e.recordJitter(ctx, report.LocalMAJ, base, "local", "mean_absolute")
+	e.recordJitter(ctx, report.RemoteMAJ, base, "remote", "mean_absolute")
 
 	record := log.Record{}
-	record.SetEventName("vq.report.received")
+	record.SetEventName("rfc6035.report.received")
 	record.SetSeverity(log.SeverityInfo)
-	record.SetBody(attribute.StringValue("voice quality report"))
+	record.SetBody(attribute.StringValue(report.RawReport))
 	record.AddAttributes(e.logAttributes(report)...)
 	e.logger.Emit(ctx, record)
 }
 
-func (e *Exporter) recordDirection(ctx context.Context, histogram metric.Float64Histogram, value *float64, base []attribute.KeyValue, direction string) {
+func (e *Exporter) recordDirection(ctx context.Context, histogram metric.Float64Histogram, value *float64, base []attribute.KeyValue, side string, scale float64) {
 	if value == nil {
 		return
 	}
-	attrs := append(append([]attribute.KeyValue{}, base...), attribute.String("vq.direction", direction))
-	histogram.Record(ctx, *value, metric.WithAttributes(attrs...))
+	converted := *value * scale
+	attrs := append(append([]attribute.KeyValue{}, base...), attribute.String("rfc6035.report.side", side))
+	histogram.Record(ctx, converted, metric.WithAttributes(attrs...))
 }
 
 func (e *Exporter) recordJitter(ctx context.Context, value *float64, base []attribute.KeyValue, direction, kind string) {
 	if value == nil {
 		return
 	}
-	attrs := append(append([]attribute.KeyValue{}, base...), attribute.String("vq.direction", direction), attribute.String("vq.jitter.type", kind))
-	e.jitter.Record(ctx, *value, metric.WithAttributes(attrs...))
+	attrs := append(append([]attribute.KeyValue{}, base...), attribute.String("rfc6035.report.side", direction), attribute.String("rfc6035.jitter.kind", kind))
+	e.jitter.Record(ctx, *value/1000, metric.WithAttributes(attrs...))
 }
 
 func (e *Exporter) logAttributes(report Report) []attribute.KeyValue {
 	attrs := []attribute.KeyValue{
-		attribute.String("event.name", "vq.report.received"),
-		attribute.String("vq.report.call_id", report.CallID),
-		attribute.String("vq.report.dialect", boundedDialect(report.Dialect)),
-		attribute.String("vq.report.type", boundedReportType(report.ReportType)),
+		attribute.String("rfc6035.report.call_id", report.CallID),
+		attribute.String("rfc6035.report.dialect", boundedDialect(report.Dialect)),
+		attribute.String("rfc6035.report.type", boundedReportType(report.ReportType)),
+		attribute.String("rfc6035.sender.name", e.boundedSenderName(report.SourceAddress)),
 		attribute.String("client.address", report.SourceAddress),
+		attribute.Int("client.port", report.SourcePort),
+		attribute.String("network.transport", "udp"),
+		attribute.String("network.protocol.name", "sip"),
 	}
 	keys := make([]string, 0, len(report.Fields))
 	for key := range report.Fields {
@@ -205,10 +221,21 @@ func (e *Exporter) logAttributes(report Report) []attribute.KeyValue {
 			normalized = base + "_" + suffix
 		}
 		used[normalized] = true
-		prefix := "vq.field." + normalized
-		attrs = append(attrs, attribute.String(prefix, report.Fields[key]), attribute.String(prefix+".original_key", key))
+		prefix := "rfc6035.field." + normalized
+		attrs = append(attrs, attribute.String(prefix, report.Fields[key]))
+		if key != normalized {
+			attrs = append(attrs, attribute.String(prefix+".original_key", key))
+		}
 	}
 	return attrs
+}
+
+func (e *Exporter) boundedSenderName(address string) string {
+	name := strings.TrimSpace(e.senderName(address))
+	if name == "" {
+		return "unknown"
+	}
+	return name
 }
 
 func boundedDialect(value string) string {
