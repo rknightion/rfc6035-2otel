@@ -16,8 +16,8 @@ type Dialect uint8
 const (
 	Unknown Dialect = iota
 	Standard
-	// Prestandard is reserved for the measured Poly pre-standard grammar.
-	// It is not detected until a real capture defines that grammar.
+	// Prestandard is Poly's measured draft grammar, structurally identified by
+	// its paired ToID and FromID identity fields.
 	Prestandard
 )
 
@@ -115,7 +115,7 @@ func Parse(input any) (Report, error) {
 	if !ok {
 		return Report{}, ErrUnrecognizedDialect
 	}
-	report.Dialect, report.ReportType, report.ReportDisposition = Standard, typ, disposition
+	report.Dialect, report.ReportType, report.ReportDisposition = detectDialect(logical[first+1:]), typ, disposition
 	report.Fields = append(report.Fields, Field{Key: typ, Value: disposition, Line: logical[first].line})
 	local := true
 	for _, line := range logical[first+1:] {
@@ -142,6 +142,12 @@ func Parse(input any) (Report, error) {
 		case "origid":
 			report.OrigID = value
 			report.Fields = append(report.Fields, field)
+		case "toid":
+			report.RemoteID = value
+			report.Fields = append(report.Fields, field)
+		case "fromid":
+			report.LocalID = value
+			report.Fields = append(report.Fields, field)
 		case "localaddr":
 			report.LocalAddress = parseAddress(&report, key, value, line.line)
 		case "remoteaddr":
@@ -162,6 +168,26 @@ func Parse(input any) (Report, error) {
 		}
 	}
 	return report, nil
+}
+
+func detectDialect(lines []logicalLine) Dialect {
+	var toID, fromID bool
+	for _, line := range lines {
+		key, _, ok := splitLine(line.text)
+		if !ok {
+			continue
+		}
+		switch normal(key) {
+		case "toid":
+			toID = true
+		case "fromid":
+			fromID = true
+		}
+	}
+	if toID && fromID {
+		return Prestandard
+	}
+	return Standard
 }
 
 type logicalLine struct {

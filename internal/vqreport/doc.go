@@ -4,7 +4,8 @@
 // observation. RFC 3611's unavailable value 127 is treated as nil only for
 // registered RFC 3611 fields (currently RERL); its literal field remains in
 // Report.Fields for lossless logs and vendor analysis. All unknown fields and
-// physical input lines are retained. The frozen Prestandard dialect enum is
-// intentionally not parsed: no real capture has measured its grammar, so an
-// unrecognised body returns ErrUnrecognizedDialect rather than guessing.
+// physical input lines are retained. Poly's measured pre-standard draft uses
+// paired ToID/FromID fields instead of the standard identity field names; that
+// structural pair selects the Prestandard dialect without a configuration
+// flag. Bodies with no recognised report line return ErrUnrecognizedDialect.
 package vqreport

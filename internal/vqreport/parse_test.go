@@ -93,6 +93,35 @@ func TestParseRealStandardCapture(t *testing.T) {
 	}
 }
 
+func TestParseRealPrestandardCapture(t *testing.T) {
+	body, err := os.ReadFile(filepath.Join("..", "..", "testdata", "real", "prestandard-2026-08-12.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := Parse(body[bodyStart(body):])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Dialect != Prestandard || got.ReportType != "VQSessionReport" || got.CallID != "5f803203028012880216cf4a71908b97" {
+		t.Fatalf("report = %#v", got)
+	}
+	if got.LocalID != `"AAISP Mobile" <sip:+441234567890@voiceless.aa.net.uk>` {
+		t.Fatalf("LocalID = %q", got.LocalID)
+	}
+	if got.RemoteID != `<sip:1571@voiceless.aa.net.uk>` {
+		t.Fatalf("RemoteID = %q", got.RemoteID)
+	}
+	if got.LocalAddress == nil || got.LocalAddress.IP.String() != "10.0.50.175" {
+		t.Fatalf("local = %#v", got.LocalAddress)
+	}
+	if got.LocalMetrics.Codec == nil || *got.LocalMetrics.Codec != "G.711 A-Law" {
+		t.Fatalf("codec = %#v", got.LocalMetrics.Codec)
+	}
+	if got.LocalMetrics.MOSCQ == nil || *got.LocalMetrics.MOSCQ != 3.9 {
+		t.Fatalf("MOSCQ = %#v", got.LocalMetrics.MOSCQ)
+	}
+}
+
 func TestParseUnrecognizedDialect(t *testing.T) {
 	_, err := Parse("DraftVQReport: something\nCallID: call-3\n")
 	if !errors.Is(err, ErrUnrecognizedDialect) {
@@ -100,7 +129,7 @@ func TestParseUnrecognizedDialect(t *testing.T) {
 	}
 }
 
-func TestPrestandardEnumIsFrozenButUnmeasured(t *testing.T) {
+func TestPrestandardEnumString(t *testing.T) {
 	if Prestandard.String() != "prestandard" {
 		t.Fatal("prestandard enum changed")
 	}
