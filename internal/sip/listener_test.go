@@ -60,10 +60,10 @@ func TestListenerSurvivesHostileDatagramsAndDeduplicates(t *testing.T) {
 	if got := handled.Load(); got != 1 {
 		t.Fatalf("handler calls = %d, want 1", got)
 	}
-	observer.assertCount(t, "datagram:accepted", 2)
-	observer.assertCount(t, "duplicate:test-phone", 1)
-	observer.assertCount(t, "response:200", 2)
-	observer.assertCount(t, "cache", 1)
+	observer.waitCount(t, "datagram:accepted", 2)
+	observer.waitCount(t, "duplicate:test-phone", 1)
+	observer.waitCount(t, "response:200", 2)
+	observer.waitCount(t, "cache", 1)
 
 	cancel()
 	select {
@@ -104,12 +104,24 @@ func (o *recordingObserver) RecordResponse(_ context.Context, status int) error 
 func (o *recordingObserver) RecordDedupeCacheChange(_ context.Context, delta int64) {
 	o.add("cache", int(delta))
 }
-func (o *recordingObserver) assertCount(t *testing.T, key string, want int) {
+func (o *recordingObserver) waitCount(t *testing.T, key string, want int) {
 	t.Helper()
-	o.mu.Lock()
-	defer o.mu.Unlock()
-	if got := o.counts[key]; got != want {
-		t.Fatalf("%s = %d, want %d (all: %#v)", key, got, want, o.counts)
+	deadline := time.Now().Add(time.Second)
+	for {
+		o.mu.Lock()
+		got := o.counts[key]
+		all := make(map[string]int, len(o.counts))
+		for name, count := range o.counts {
+			all[name] = count
+		}
+		o.mu.Unlock()
+		if got == want {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("%s = %d, want %d (all: %#v)", key, got, want, all)
+		}
+		time.Sleep(time.Millisecond)
 	}
 }
 
@@ -140,10 +152,10 @@ func TestListenerRejectsWrongPublishShape(t *testing.T) {
 	} {
 		assertUDPResponse(t, client, []byte(test.request), "SIP/2.0 "+test.want)
 	}
-	observer.assertCount(t, "datagram:rejected", 3)
-	observer.assertCount(t, "response:405", 1)
-	observer.assertCount(t, "response:415", 1)
-	observer.assertCount(t, "response:489", 1)
+	observer.waitCount(t, "datagram:rejected", 3)
+	observer.waitCount(t, "response:405", 1)
+	observer.waitCount(t, "response:415", 1)
+	observer.waitCount(t, "response:489", 1)
 }
 
 func assertUDPResponse(t *testing.T, client *net.UDPConn, request []byte, want string) {
