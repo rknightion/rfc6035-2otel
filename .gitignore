@@ -1,0 +1,29 @@
+# Run scaffolding for Codex campaigns: goals, launch messages and run reports.
+# Gitignored as a DIRECTORY (not a filename pattern) so a new artefact type
+# cannot leak by being named something a pattern did not anticipate.
+codex/
+
+# Build output
+/bin/
+/dist/
+*.exe
+
+# Go
+vendor/
+*.test
+*.out
+coverage.*
+
+# Local config with real endpoints/credentials
+config.local.yaml
+config.yaml
+.env
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# stray root build output
+/rfc6035-2otel
