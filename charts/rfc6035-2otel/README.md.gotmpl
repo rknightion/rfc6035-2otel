@@ -1,0 +1,55 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.deprecationWarning" . }}
+
+<!-- x-release-please-start-version -->
+![Version](https://img.shields.io/static/v1?label=Version&message={{ .Version }}&color=informational&style=flat-square)
+![AppVersion](https://img.shields.io/static/v1?label=AppVersion&message={{ .AppVersion }}&color=informational&style=flat-square)
+<!-- x-release-please-end -->
+![Type: {{ .Type }}](https://img.shields.io/badge/Type-{{ .Type }}-informational?style=flat-square)
+
+{{ template "chart.description" . }}
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+## Install
+
+Set an OTLP endpoint during installation (or set `config.otlp.endpoint` in a
+values file):
+
+```sh
+helm install rfc6035 oci://ghcr.io/rknightion/charts/rfc6035-2otel \
+  --set config.otlp.endpoint=https://otlp.example.invalid
+```
+
+For secret OTLP headers, use `extraEnv`, for example an `EnvVar` sourced from a
+Kubernetes Secret with the name `RFC6035_2OTEL_OTLP__HEADERS__AUTHORIZATION`.
+The chart has no secret value and does not render a Secret.
+
+## Inbound UDP Service exposure
+
+The Service always declares UDP port 5060. `LoadBalancer` is the default and is
+appropriate for off-cluster phones only when the cluster load balancer supports
+UDP. `NodePort` also supports UDP, but phones must target a reachable node IP and
+port. `ClusterIP` supports UDP only for callers that can reach the cluster Service
+IP. `ExternalName` has no proxy or port exposure, and HTTP/TCP-only ingress does
+not carry this traffic.
+
+`service.externalTrafficPolicy: Local` is the Kubernetes control most likely to
+retain the original source IP for `LoadBalancer` and `NodePort`, but it sends
+traffic only to nodes with ready local endpoints. Source-IP behavior still
+depends on the CNI and load balancer. If the source is translated, configured
+sender mappings cannot distinguish the original handset.
+
+## Security posture
+
+The defaults run as non-root user `65532`, use a read-only root filesystem,
+disable privilege escalation, drop every Linux capability, select the runtime
+default seccomp profile, and do not mount a service-account token. The process is
+OTLP-push-only and intentionally has no HTTP health endpoint or fabricated probe.
+
+{{ template "chart.valuesSection" . -}}

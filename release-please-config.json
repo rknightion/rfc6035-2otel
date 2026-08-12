@@ -10,7 +10,8 @@
       "package-name": "rfc6035-2otel",
       "extra-files": [
         {"type":"yaml","path":"charts/rfc6035-2otel/Chart.yaml","jsonpath":"$.version"},
-        {"type":"yaml","path":"charts/rfc6035-2otel/Chart.yaml","jsonpath":"$.appVersion"}
+        {"type":"yaml","path":"charts/rfc6035-2otel/Chart.yaml","jsonpath":"$.appVersion"},
+        {"type":"generic","path":"charts/rfc6035-2otel/README.md"}
       ]
     }
   },

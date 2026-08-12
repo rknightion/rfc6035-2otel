@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "metrics": [
+    {"name": "rfc6035.call.mos_lq", "prometheus": "rfc6035_call_mos_lq", "kind": "histogram", "unit": "1", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.report.side", "rfc6035.sender.name"]},
+    {"name": "rfc6035.call.mos_cq", "prometheus": "rfc6035_call_mos_cq", "kind": "histogram", "unit": "1", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.report.side", "rfc6035.sender.name"]},
+    {"name": "rfc6035.call.r_factor_lq", "prometheus": "rfc6035_call_r_factor_lq", "kind": "histogram", "unit": "1", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.report.side", "rfc6035.sender.name"]},
+    {"name": "rfc6035.call.r_factor_cq", "prometheus": "rfc6035_call_r_factor_cq", "kind": "histogram", "unit": "1", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.report.side", "rfc6035.sender.name"]},
+    {"name": "rfc6035.call.packet_loss", "prometheus": "rfc6035_call_packet_loss", "kind": "histogram", "unit": "1", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.report.side", "rfc6035.sender.name"]},
+    {"name": "rfc6035.call.discard_rate", "prometheus": "rfc6035_call_discard_rate", "kind": "histogram", "unit": "1", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.report.side", "rfc6035.sender.name"]},
+    {"name": "rfc6035.call.round_trip_delay", "prometheus": "rfc6035_call_round_trip_delay_seconds", "kind": "histogram", "unit": "s", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.report.side", "rfc6035.sender.name"]},
+    {"name": "rfc6035.call.one_way_delay", "prometheus": "rfc6035_call_one_way_delay_seconds", "kind": "histogram", "unit": "s", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.report.side", "rfc6035.sender.name"]},
+    {"name": "rfc6035.call.jitter", "prometheus": "rfc6035_call_jitter_seconds", "kind": "histogram", "unit": "s", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.report.side", "rfc6035.sender.name", "rfc6035.jitter.kind"]},
+    {"name": "rfc6035_2otel.build_info", "prometheus": "rfc6035_2otel_build_info", "kind": "gauge", "unit": "1", "attributes": ["service.version", "vcs.ref.head.revision", "rfc6035_2otel.build.date", "rfc6035_2otel.build.go_version"]},
+    {"name": "rfc6035_2otel.datagrams", "prometheus": "rfc6035_2otel_datagrams_total", "kind": "counter", "unit": "{datagram}", "attributes": ["rfc6035_2otel.datagram.outcome"]},
+    {"name": "rfc6035_2otel.reports", "prometheus": "rfc6035_2otel_reports_total", "kind": "counter", "unit": "{report}", "attributes": ["rfc6035.report.dialect", "rfc6035.report.type", "rfc6035.sender.name"]},
+    {"name": "rfc6035_2otel.parse_errors", "prometheus": "rfc6035_2otel_parse_errors_total", "kind": "counter", "unit": "{error}", "attributes": ["error.type"]},
+    {"name": "rfc6035_2otel.duplicates", "prometheus": "rfc6035_2otel_duplicates_total", "kind": "counter", "unit": "{report}", "attributes": ["rfc6035.sender.name"]},
+    {"name": "rfc6035_2otel.responses", "prometheus": "rfc6035_2otel_responses_total", "kind": "counter", "unit": "{response}", "attributes": ["rfc6035.response.status_code"]},
+    {"name": "rfc6035_2otel.export_failures", "prometheus": "rfc6035_2otel_export_failures_total", "kind": "counter", "unit": "{failure}", "attributes": ["rfc6035_2otel.signal"]},
+    {"name": "rfc6035_2otel.dedupe_cache.usage", "prometheus": "rfc6035_2otel_dedupe_cache_usage", "kind": "updowncounter", "unit": "{entry}", "attributes": []},
+    {"name": "rfc6035_2otel.report.process.duration", "prometheus": "rfc6035_2otel_report_process_duration_seconds", "kind": "histogram", "unit": "s", "attributes": ["rfc6035.report.dialect"]}
+  ]
+}

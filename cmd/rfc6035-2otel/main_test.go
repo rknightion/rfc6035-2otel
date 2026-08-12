@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"net"
 	"testing"
 
+	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/rknightion/rfc6035-2otel/internal/config"
 	"github.com/rknightion/rfc6035-2otel/internal/sip"
 	"github.com/rknightion/rfc6035-2otel/internal/vqreport"
 )
@@ -20,14 +24,18 @@ func TestExportReportMapsTypedMetricsAndLosslessFields(t *testing.T) {
 		},
 	}
 	got := exportReport(report, sip.Publish{
+		Body:   []byte("VQSessionReport\nCallID: body-call\n"),
 		CallID: "sip-call", CSeq: "1 PUBLISH",
 		RemoteAddr: &net.UDPAddr{IP: net.ParseIP("192.0.2.8"), Port: 5060},
 	})
 	if got.LocalMOSLQ != &mos || got.RemoteMOSLQ != nil {
 		t.Fatalf("metric mapping = %#v", got)
 	}
-	if got.CallID != "body-call" || got.SourceAddress != "192.0.2.8" {
+	if got.CallID != "body-call" || got.SourceAddress != "192.0.2.8" || got.SourcePort != 5060 {
 		t.Fatalf("identity mapping = %#v", got)
+	}
+	if got.RawReport != "VQSessionReport\nCallID: body-call\n" {
+		t.Fatalf("raw report = %q", got.RawReport)
 	}
 	for key, want := range map[string]string{
 		"Signal.RERL": "127", "X-Vendor": "first", "X-Vendor[2]": "second",
@@ -36,6 +44,41 @@ func TestExportReportMapsTypedMetricsAndLosslessFields(t *testing.T) {
 		if got.Fields[key] != want {
 			t.Errorf("field %s = %q, want %q", key, got.Fields[key], want)
 		}
+	}
+}
+
+func TestResourceHonorsEnvironmentWithExplicitServiceOverrides(t *testing.T) {
+	t.Setenv("OTEL_RESOURCE_ATTRIBUTES", "deployment.environment.name=test,service.name=from-env")
+	t.Setenv("OTEL_SERVICE_NAME", "also-from-env")
+	res, err := newResource(context.Background(), config.Config{
+		Service: config.ServiceConfig{Name: "rfc6035-2otel", Version: "0.1.0"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	attrs := make(map[string]attribute.Value)
+	for _, kv := range res.Attributes() {
+		attrs[string(kv.Key)] = kv.Value
+	}
+	for key, want := range map[string]string{
+		"deployment.environment.name": "test",
+		"service.name":                "rfc6035-2otel",
+		"service.version":             "0.1.0",
+		"service.instance.id":         hostname(),
+		"telemetry.sdk.language":      "go",
+	} {
+		if got := attrs[key].AsString(); got != want {
+			t.Errorf("%s = %q, want %q", key, got, want)
+		}
+	}
+}
+
+func TestParseErrorType(t *testing.T) {
+	if got := parseErrorType(vqreport.ErrUnrecognizedDialect); got != "unrecognized_dialect" {
+		t.Fatalf("unrecognized dialect = %q", got)
+	}
+	if got := parseErrorType(vqreport.ErrInvalidInput); got != "invalid_input" {
+		t.Fatalf("invalid input = %q", got)
 	}
 }
 

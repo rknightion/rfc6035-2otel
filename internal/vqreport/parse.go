@@ -253,6 +253,7 @@ func parseAddress(r *Report, group, value string, line int) *Address {
 			}
 		case "port":
 			if n, err := uintValue(token.value, 16); err == nil {
+				// #nosec G115 -- ParseUint's 16-bit limit proves this conversion is in range.
 				v := uint16(n)
 				a.Port = &v
 			} else {
@@ -260,6 +261,7 @@ func parseAddress(r *Report, group, value string, line int) *Address {
 			}
 		case "ssrc":
 			if n, err := uintValue(token.value, 32); err == nil {
+				// #nosec G115 -- ParseUint's 32-bit limit proves this conversion is in range.
 				v := uint32(n)
 				a.SSRC = &v
 			} else {
@@ -313,6 +315,7 @@ func setMetric(m *Metrics, name, value string) bool {
 		if err != nil {
 			return false
 		}
+		// #nosec G115 -- ParseUint's 8-bit limit proves this conversion is in range.
 		v := uint8(n)
 		m.PayloadType = &v
 		return true

@@ -1,25 +1,28 @@
 # rfc6035-2otel
 
-`rfc6035-2otel` receives **SIP voice-quality reports** — [RFC 6035](https://www.rfc-editor.org/rfc/rfc6035)
-`PUBLISH` requests carrying an `application/vq-rtcpxr` body, whose metric syntax comes from
-[RFC 3611](https://www.rfc-editor.org/rfc/rfc3611) — and exports them as **OpenTelemetry metrics and
-logs** over OTLP.
+`rfc6035-2otel` receives RFC 6035 voice-quality reports as SIP `PUBLISH` requests
+over UDP and exports OpenTelemetry metrics and logs over OTLP. It supports the standard
+and measured Poly pre-standard dialects, has one UDP listener, and no Prometheus scrape
+endpoint. Metrics stay bounded while per-call detail remains in logs.
 
-It is a single Go process with one inbound UDP listener and no Prometheus scrape endpoint.
+The collector replies to valid reports with SIP `200 OK`; it rejects unsupported methods, content types, and event packages with the applicable SIP response. UDP retransmissions are deduplicated.
 
-## Why this exists
+## Quick start
 
-VoIP handsets can report per-call quality — MOS, R-factor, jitter, packet loss, round-trip and
-one-way delay — but only over SIP. No OpenTelemetry Collector receiver speaks SIP, and the reports
-are not a log stream: the phone sends a `PUBLISH` and requires a well-formed `200 OK` in reply, or it
-retries and eventually gives up.
+```sh
+make build
+./bin/rfc6035-2otel -version
+```
 
-This bridges that gap directly to OTLP, with no syslog hop.
+Copy [config.example.yaml](config.example.yaml), set a real OTLP endpoint, and run the
+binary with `-config`. The default listener is UDP `0.0.0.0:5060`; do not expose it to
+untrusted networks. Configure `senders` with stable names for expected source addresses;
+every unmatched source collapses to the single `unknown` metric value.
 
-## Status
-
-Early development. See `spec/` for the frozen protocol contract this implements.
+See the [operator documentation](docs/index.md) for [configuration](docs/configuration.md),
+[signals](docs/signals.md), [dialects](docs/dialects.md), [security](docs/security.md),
+and troubleshooting.
 
 ## Licence
 
-AGPL-3.0. See `LICENSE`.
+AGPL-3.0. See [LICENSE](LICENSE).

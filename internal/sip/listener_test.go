@@ -3,7 +3,9 @@ package sip
 import (
 	"context"
 	"net"
+	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -16,7 +18,18 @@ func TestListenerSurvivesHostileDatagramsAndDeduplicates(t *testing.T) {
 	}
 	defer server.Close()
 	var handled atomic.Int32
-	listener, err := New(Config{MaxDatagram: 256, Handler: func(_ context.Context, _ Publish) { handled.Add(1) }})
+	observer := &recordingObserver{}
+	listener, err := New(Config{
+		MaxDatagram: 256,
+		Handler:     func(_ context.Context, _ Publish) { handled.Add(1) },
+		Observer:    observer,
+		SenderName: func(address string) string {
+			if address == "127.0.0.1" {
+				return "test-phone"
+			}
+			return "unknown"
+		},
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +42,7 @@ func TestListenerSurvivesHostileDatagramsAndDeduplicates(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer client.Close()
-	for _, hostile := range [][]byte{nil, []byte{0, 255, 1, 2}, []byte("PUBLISH"), make([]byte, 300)} {
+	for _, hostile := range [][]byte{nil, {0, 255, 1, 2}, []byte("PUBLISH"), make([]byte, 300)} {
 		if _, err := client.Write(hostile); err != nil {
 			t.Fatalf("send hostile input: %v", err)
 		}
@@ -47,6 +60,10 @@ func TestListenerSurvivesHostileDatagramsAndDeduplicates(t *testing.T) {
 	if got := handled.Load(); got != 1 {
 		t.Fatalf("handler calls = %d, want 1", got)
 	}
+	observer.assertCount(t, "datagram:accepted", 2)
+	observer.assertCount(t, "duplicate:test-phone", 1)
+	observer.assertCount(t, "response:200", 2)
+	observer.assertCount(t, "cache", 1)
 
 	cancel()
 	select {
@@ -59,13 +76,51 @@ func TestListenerSurvivesHostileDatagramsAndDeduplicates(t *testing.T) {
 	}
 }
 
+type recordingObserver struct {
+	mu     sync.Mutex
+	counts map[string]int
+}
+
+func (o *recordingObserver) add(key string, delta int) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	if o.counts == nil {
+		o.counts = make(map[string]int)
+	}
+	o.counts[key] += delta
+}
+func (o *recordingObserver) RecordDatagram(_ context.Context, outcome string) error {
+	o.add("datagram:"+outcome, 1)
+	return nil
+}
+func (o *recordingObserver) RecordDuplicate(_ context.Context, sender string) error {
+	o.add("duplicate:"+sender, 1)
+	return nil
+}
+func (o *recordingObserver) RecordResponse(_ context.Context, status int) error {
+	o.add("response:"+strconv.Itoa(status), 1)
+	return nil
+}
+func (o *recordingObserver) RecordDedupeCacheChange(_ context.Context, delta int64) {
+	o.add("cache", int(delta))
+}
+func (o *recordingObserver) assertCount(t *testing.T, key string, want int) {
+	t.Helper()
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	if got := o.counts[key]; got != want {
+		t.Fatalf("%s = %d, want %d (all: %#v)", key, got, want, o.counts)
+	}
+}
+
 func TestListenerRejectsWrongPublishShape(t *testing.T) {
 	server, err := net.ListenPacket("udp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer server.Close()
-	listener, err := New(Config{})
+	observer := &recordingObserver{}
+	listener, err := New(Config{Observer: observer})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,6 +140,10 @@ func TestListenerRejectsWrongPublishShape(t *testing.T) {
 	} {
 		assertUDPResponse(t, client, []byte(test.request), "SIP/2.0 "+test.want)
 	}
+	observer.assertCount(t, "datagram:rejected", 3)
+	observer.assertCount(t, "response:405", 1)
+	observer.assertCount(t, "response:415", 1)
+	observer.assertCount(t, "response:489", 1)
 }
 
 func assertUDPResponse(t *testing.T, client *net.UDPConn, request []byte, want string) {

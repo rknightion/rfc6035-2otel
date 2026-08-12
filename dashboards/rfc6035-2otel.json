@@ -1,0 +1,493 @@
+{
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "panels": [],
+      "title": "Call quality",
+      "type": "row"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_mos_lq_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "MOS LQ",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_mos_cq_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "MOS CQ",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_r_factor_lq_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "R-factor LQ",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 5,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_r_factor_cq_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "R-factor CQ",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "id": 6,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_packet_loss_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Packet loss",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "id": 7,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_discard_rate_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Discard rate",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "id": 8,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name, rfc6035_jitter_kind) (rate(rfc6035_call_jitter_seconds_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}} {{rfc6035_jitter_kind}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Jitter",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "id": 9,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_round_trip_delay_seconds_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Round-trip delay",
+      "type": "timeseries"
+    },
+    {
+      "description": "No data is normal: the captured Poly reports omit ESD and SOWD.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 33
+      },
+      "id": 10,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_one_way_delay_seconds_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "One-way delay",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "id": 11,
+      "panels": [],
+      "title": "Collector health",
+      "type": "row"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 42
+      },
+      "id": 12,
+      "targets": [
+        {
+          "expr": "rfc6035_2otel_build_info",
+          "legendFormat": "{{service_version}} {{vcs_ref_head_revision}} {{rfc6035_2otel_build_date}} {{rfc6035_2otel_build_go_version}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Build info",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 42
+      },
+      "id": 13,
+      "targets": [
+        {
+          "expr": "sum by (rfc6035_2otel_datagram_outcome) (rate(rfc6035_2otel_datagrams_total[5m]))",
+          "legendFormat": "{{rfc6035_2otel_datagram_outcome}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Datagram outcomes",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 50
+      },
+      "id": 14,
+      "targets": [
+        {
+          "expr": "sum by (rfc6035_report_dialect, rfc6035_report_type, rfc6035_sender_name) (rate(rfc6035_2otel_reports_total[5m]))",
+          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Reports by dialect, type, and sender",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 50
+      },
+      "id": 15,
+      "targets": [
+        {
+          "expr": "sum by (error_type) (rate(rfc6035_2otel_parse_errors_total[5m]))",
+          "legendFormat": "{{error_type}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Parse errors",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 58
+      },
+      "id": 16,
+      "targets": [
+        {
+          "expr": "sum by (rfc6035_sender_name) (rate(rfc6035_2otel_duplicates_total[5m]))",
+          "legendFormat": "{{rfc6035_sender_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Duplicates / dedupe hits",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 58
+      },
+      "id": 17,
+      "targets": [
+        {
+          "expr": "sum by (rfc6035_response_status_code) (rate(rfc6035_2otel_responses_total[5m]))",
+          "legendFormat": "{{rfc6035_response_status_code}}",
+          "refId": "A"
+        }
+      ],
+      "title": "SIP responses",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 66
+      },
+      "id": 18,
+      "targets": [
+        {
+          "expr": "sum by (rfc6035_2otel_signal) (rate(rfc6035_2otel_export_failures_total[5m]))",
+          "legendFormat": "{{rfc6035_2otel_signal}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Export failures",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 66
+      },
+      "id": 19,
+      "targets": [
+        {
+          "expr": "rfc6035_2otel_dedupe_cache_usage",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Dedupe cache usage",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 74
+      },
+      "id": 20,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect) (rate(rfc6035_2otel_report_process_duration_seconds_bucket[5m])))",
+          "legendFormat": "{{rfc6035_report_dialect}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Report processing duration",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 41,
+  "tags": [
+    "rfc6035",
+    "generated"
+  ],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "RFC 6035 voice quality",
+  "uid": "rfc6035-2otel"
+}

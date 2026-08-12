@@ -31,12 +31,23 @@ type Publish struct {
 // Handler receives each non-duplicate, valid voice-quality PUBLISH request.
 type Handler func(context.Context, Publish)
 
+// Observer receives bounded operational events from the UDP/SIP boundary.
+// Implementations must not retain raw datagrams or addresses.
+type Observer interface {
+	RecordDatagram(context.Context, string) error
+	RecordDuplicate(context.Context, string) error
+	RecordResponse(context.Context, int) error
+	RecordDedupeCacheChange(context.Context, int64)
+}
+
 // Config configures a UDP SIP listener.
 type Config struct {
 	Address      string
 	DedupeWindow time.Duration
 	MaxDatagram  int
 	Handler      Handler
+	Observer     Observer
+	SenderName   func(string) string
 }
 
 // Listener serves SIP requests and keeps its retransmission cache safe for
@@ -96,12 +107,14 @@ func (l *Listener) Serve(ctx context.Context, conn net.PacketConn) error {
 			if ctx.Err() != nil {
 				return nil
 			}
-			if timeout, ok := err.(net.Error); ok && timeout.Timeout() {
+			var timeout net.Error
+			if errors.As(err, &timeout) && timeout.Timeout() {
 				continue
 			}
 			return err
 		}
 		if n == len(buffer) { // The datagram may have been truncated; never parse it.
+			l.recordDatagram(ctx, "malformed")
 			continue
 		}
 		data := append([]byte(nil), buffer[:n]...)
@@ -112,39 +125,83 @@ func (l *Listener) Serve(ctx context.Context, conn net.PacketConn) error {
 func (l *Listener) handleDatagram(ctx context.Context, conn net.PacketConn, remote net.Addr, data []byte) {
 	request, err := parseRequest(data)
 	if err != nil {
+		l.recordDatagram(ctx, "malformed")
 		return
 	}
 	status := validatePublish(request)
 	if status != 200 {
-		_, _ = conn.WriteTo(buildErrorResponse(request, remote, status), remote)
+		l.recordDatagram(ctx, "rejected")
+		if _, err := conn.WriteTo(buildErrorResponse(request, remote, status), remote); err == nil {
+			l.recordResponse(ctx, status)
+		}
 		return
 	}
+	l.recordDatagram(ctx, "accepted")
 
 	key := request.header("call-id") + "\x00" + request.header("cseq")
-	response, duplicate := l.responseFor(key, func() []byte {
+	response, duplicate, cacheDelta := l.responseFor(key, func() []byte {
 		return buildResponse(request, remote, randomToken(), randomToken(), 3600)
 	})
-	_, _ = conn.WriteTo(response, remote)
+	if cacheDelta != 0 && l.config.Observer != nil {
+		l.config.Observer.RecordDedupeCacheChange(ctx, cacheDelta)
+	}
+	if _, err := conn.WriteTo(response, remote); err == nil {
+		l.recordResponse(ctx, 200)
+	}
+	if duplicate && l.config.Observer != nil {
+		_ = l.config.Observer.RecordDuplicate(ctx, l.senderName(remote))
+	}
 	if !duplicate && l.config.Handler != nil {
 		l.config.Handler(ctx, Publish{Body: append([]byte(nil), request.body...), CallID: request.header("call-id"), CSeq: request.header("cseq"), RemoteAddr: remote})
 	}
 }
 
-func (l *Listener) responseFor(key string, build func() []byte) ([]byte, bool) {
+func (l *Listener) responseFor(key string, build func() []byte) ([]byte, bool, int64) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	now := time.Now()
+	var expired int64
 	for staleKey, entry := range l.seen {
 		if !entry.expires.After(now) {
 			delete(l.seen, staleKey)
+			expired++
 		}
 	}
 	if entry, ok := l.seen[key]; ok {
-		return entry.response, true
+		return entry.response, true, -expired
 	}
 	response := build()
 	l.seen[key] = cachedResponse{response: response, expires: now.Add(l.config.DedupeWindow)}
-	return response, false
+	return response, false, 1 - expired
+}
+
+func (l *Listener) recordDatagram(ctx context.Context, outcome string) {
+	if l.config.Observer != nil {
+		_ = l.config.Observer.RecordDatagram(ctx, outcome)
+	}
+}
+
+func (l *Listener) recordResponse(ctx context.Context, status int) {
+	if l.config.Observer != nil {
+		_ = l.config.Observer.RecordResponse(ctx, status)
+	}
+}
+
+func (l *Listener) senderName(remote net.Addr) string {
+	if l.config.SenderName == nil {
+		return "unknown"
+	}
+	address := remote.String()
+	if udp, ok := remote.(*net.UDPAddr); ok {
+		address = udp.IP.String()
+	} else if host, _, err := net.SplitHostPort(address); err == nil {
+		address = host
+	}
+	name := strings.TrimSpace(l.config.SenderName(address))
+	if name == "" {
+		return "unknown"
+	}
+	return name
 }
 
 type request struct {

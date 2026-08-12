@@ -117,5 +117,5 @@ config:
   service:
     # OpenTelemetry service.name resource attribute.
     name: rfc6035-2otel
-    # OpenTelemetry service.version resource attribute; empty is permitted.
+    # OpenTelemetry service.version resource attribute; empty uses Chart.appVersion.
     version: ""

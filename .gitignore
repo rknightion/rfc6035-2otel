@@ -13,6 +13,9 @@ vendor/
 *.test
 *.out
 coverage.*
+.tools/
+__pycache__/
+*.py[cod]
 
 # Local config with real endpoints/credentials
 config.local.yaml

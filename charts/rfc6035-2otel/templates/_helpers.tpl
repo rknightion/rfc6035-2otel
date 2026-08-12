@@ -37,5 +37,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{- define "rfc6035-2otel.config" -}}
-{{- .Values.config | toYaml -}}
+{{- $config := deepCopy .Values.config -}}
+{{- if empty $config.service.version -}}
+{{- $_ := set $config.service "version" .Chart.AppVersion -}}
+{{- end -}}
+{{- $config | toYaml -}}
 {{- end -}}

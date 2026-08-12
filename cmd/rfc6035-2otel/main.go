@@ -13,8 +13,10 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -25,11 +27,13 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 
 	"github.com/rknightion/rfc6035-2otel/internal/config"
 	"github.com/rknightion/rfc6035-2otel/internal/otelexport"
+	"github.com/rknightion/rfc6035-2otel/internal/selfobs"
 	"github.com/rknightion/rfc6035-2otel/internal/sip"
 	"github.com/rknightion/rfc6035-2otel/internal/vqreport"
 )
@@ -86,7 +90,21 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		logger.Error("build OpenTelemetry providers", "error", err)
 		return 1
 	}
-	exporter, err := otelexport.New(providers.metrics, providers.logs)
+	senderNames := make([]string, 0, len(cfg.Senders)+1)
+	senderNames = append(senderNames, "unknown")
+	for _, sender := range cfg.Senders {
+		senderNames = append(senderNames, sender.Name)
+	}
+	selfRecorder, err := selfobs.New(providers.metrics, selfobs.BuildInfo{
+		Version: version, Revision: commit, Date: buildDate, GoVersion: runtime.Version(),
+	}, senderNames)
+	if err != nil {
+		logger.Error("build self-observability recorder", "error", err)
+		_ = providers.Shutdown(context.Background())
+		return 1
+	}
+	providers.failures.Set(selfRecorder)
+	exporter, err := otelexport.New(providers.metrics, providers.logs, cfg.SenderName)
 	if err != nil {
 		logger.Error("build report exporter", "error", err)
 		_ = providers.Shutdown(context.Background())
@@ -96,13 +114,20 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	listener, err := sip.New(sip.Config{
 		Address:      net.JoinHostPort(cfg.Listen.Address, strconv.Itoa(cfg.Listen.Port)),
 		DedupeWindow: cfg.DedupeWindow,
+		Observer:     selfRecorder,
+		SenderName:   cfg.SenderName,
 		Handler: func(handlerCtx context.Context, publish sip.Publish) {
+			started := time.Now()
 			report, parseErr := vqreport.Parse(publish.Body)
 			if parseErr != nil {
+				_ = selfRecorder.RecordParseError(handlerCtx, parseErrorType(parseErr))
 				logger.Warn("reject voice-quality report", "source", publish.RemoteAddr.String(), "sip_call_id", publish.CallID, "error", parseErr)
 				return
 			}
+			sender := cfg.SenderName(sourceAddress(publish.RemoteAddr))
+			_ = selfRecorder.RecordReport(handlerCtx, report.Dialect.String(), report.ReportType, sender)
 			exporter.Export(handlerCtx, exportReport(report, publish))
+			_ = selfRecorder.RecordProcessDuration(handlerCtx, report.Dialect.String(), time.Since(started))
 			logger.Info("export voice-quality report", "source", publish.RemoteAddr.String(), "call_id", report.CallID, "report_type", report.ReportType, "dialect", report.Dialect.String())
 		},
 	})
@@ -145,8 +170,9 @@ func newLogger(level string, writer io.Writer) (*slog.Logger, error) {
 }
 
 type providers struct {
-	metrics *sdkmetric.MeterProvider
-	logs    *sdklog.LoggerProvider
+	metrics  *sdkmetric.MeterProvider
+	logs     *sdklog.LoggerProvider
+	failures *exportFailureSink
 }
 
 func newProviders(ctx context.Context, cfg config.Config) (*providers, error) {
@@ -198,11 +224,11 @@ func newProviders(ctx context.Context, cfg config.Config) (*providers, error) {
 		return nil, fmt.Errorf("unsupported OTLP protocol %q", cfg.OTLP.Protocol)
 	}
 
-	res, err := resource.New(ctx, resource.WithAttributes(
-		semconv.ServiceName(cfg.Service.Name),
-		semconv.ServiceVersion(cfg.Service.Version),
-		semconv.ServiceInstanceID(hostname()),
-	))
+	failures := &exportFailureSink{}
+	metricExporter = metricExporterWithFailures{Exporter: metricExporter, failures: failures}
+	logExporter = logExporterWithFailures{Exporter: logExporter, failures: failures}
+
+	res, err := newResource(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("create OpenTelemetry resource: %w", err)
 	}
@@ -214,7 +240,36 @@ func newProviders(ctx context.Context, cfg config.Config) (*providers, error) {
 		sdklog.WithResource(res),
 		sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter)),
 	)
-	return &providers{metrics: metricProvider, logs: logProvider}, nil
+	return &providers{metrics: metricProvider, logs: logProvider, failures: failures}, nil
+}
+
+func newResource(ctx context.Context, cfg config.Config) (*resource.Resource, error) {
+	res, err := resource.New(ctx,
+		resource.WithFromEnv(),
+		resource.WithTelemetrySDK(),
+		resource.WithHost(),
+		// Explicit application identity is last so it overrides values from the
+		// standard environment while all other OTEL_RESOURCE_ATTRIBUTES survive.
+		resource.WithAttributes(
+			semconv.ServiceName(cfg.Service.Name),
+			semconv.ServiceVersion(cfg.Service.Version),
+			semconv.ServiceInstanceID(hostname()),
+		),
+	)
+	if err != nil && !errors.Is(err, resource.ErrPartialResource) && !errors.Is(err, resource.ErrSchemaURLConflict) {
+		return nil, err
+	}
+	return res, nil
+}
+
+func parseErrorType(err error) string {
+	if errors.Is(err, vqreport.ErrUnrecognizedDialect) {
+		return "unrecognized_dialect"
+	}
+	if errors.Is(err, vqreport.ErrInvalidInput) {
+		return "invalid_input"
+	}
+	return "invalid_value"
 }
 
 func (p *providers) Shutdown(ctx context.Context) error {
@@ -276,6 +331,8 @@ func exportReport(report vqreport.Report, publish sip.Publish) otelexport.Report
 		ReportType:        report.ReportType,
 		CallID:            report.CallID,
 		SourceAddress:     sourceAddress(publish.RemoteAddr),
+		SourcePort:        sourcePort(publish.RemoteAddr),
+		RawReport:         string(publish.Body),
 		Fields:            fields,
 		LocalMOSLQ:        report.LocalMetrics.MOSLQ,
 		RemoteMOSLQ:       report.RemoteMetrics.MOSLQ,
@@ -298,6 +355,68 @@ func exportReport(report vqreport.Report, publish sip.Publish) otelexport.Report
 		LocalMAJ:          report.LocalMetrics.MAJ,
 		RemoteMAJ:         report.RemoteMetrics.MAJ,
 	}
+}
+
+func sourcePort(address net.Addr) int {
+	if udp, ok := address.(*net.UDPAddr); ok {
+		return udp.Port
+	}
+	_, rawPort, err := net.SplitHostPort(address.String())
+	if err != nil {
+		return 0
+	}
+	port, _ := strconv.Atoi(rawPort)
+	return port
+}
+
+type exportFailureRecorder interface {
+	RecordExportFailure(context.Context, string) error
+}
+
+type exportFailureSink struct {
+	mu       sync.RWMutex
+	recorder exportFailureRecorder
+}
+
+func (s *exportFailureSink) Set(recorder exportFailureRecorder) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.recorder = recorder
+}
+
+func (s *exportFailureSink) Record(ctx context.Context, signal string) {
+	s.mu.RLock()
+	recorder := s.recorder
+	s.mu.RUnlock()
+	if recorder != nil {
+		_ = recorder.RecordExportFailure(ctx, signal)
+	}
+}
+
+type metricExporterWithFailures struct {
+	sdkmetric.Exporter
+	failures *exportFailureSink
+}
+
+func (e metricExporterWithFailures) Export(ctx context.Context, metrics *metricdata.ResourceMetrics) error {
+	err := e.Exporter.Export(ctx, metrics)
+	if err != nil {
+		e.failures.Record(ctx, "metrics")
+	}
+	return err
+}
+
+type logExporterWithFailures struct {
+	sdklog.Exporter
+	failures *exportFailureSink
+}
+
+func (e logExporterWithFailures) Export(ctx context.Context, records []sdklog.Record) error {
+	err := e.Exporter.Export(ctx, records)
+	if err != nil {
+		e.failures.Record(ctx, "logs")
+	}
+	return err
 }
 
 func sourceAddress(address net.Addr) string {

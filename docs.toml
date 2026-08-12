@@ -1,0 +1,33 @@
+# Repository-owned documentation metadata. The site generator supplies the shared base.
+[site]
+name = "rfc6035-2otel"
+description = "Receives SIP voice-quality reports and exports bounded OpenTelemetry metrics and logs"
+author = "Rob Knighton"
+keywords = ["sip", "rfc 6035", "rtcpxr", "opentelemetry", "otlp", "voice quality"]
+
+[[site.nav]]
+Home = "index.md"
+
+[[site.nav]]
+"Getting Started" = "getting-started.md"
+
+[[site.nav]]
+Configuration = "configuration.md"
+
+[[site.nav]]
+Reference = [
+  { Signals = "signals.md" },
+  { "Environment Variables" = "env-vars.md" },
+  { Dialects = "dialects.md" },
+]
+
+[[site.nav]]
+Operations = [
+  { Security = "security.md" },
+  { Troubleshooting = "troubleshooting.md" },
+]
+
+[[social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/rknightion/rfc6035-2otel"
+name = "GitHub Repository"
