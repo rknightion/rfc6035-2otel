@@ -67,7 +67,11 @@ func New(meterProvider metric.MeterProvider, build BuildInfo, senderNames []stri
 		return nil, err
 	}
 	meter := meterProvider.Meter(instrumentationName)
-	buildInfo, err := meter.Float64ObservableGauge("rfc6035_2otel.build_info", metric.WithUnit("1"))
+	// Do not set an explicit unit here. The gauge's constant value is
+	// dimensionless, but Prometheus compatibility translation renders an
+	// explicit OTel unit of "1" as a _ratio suffix. The frozen public series is
+	// rfc6035_2otel_build_info, matching the sibling collector's build metric.
+	buildInfo, err := meter.Float64ObservableGauge("rfc6035_2otel.build_info")
 	if err != nil {
 		return nil, err
 	}

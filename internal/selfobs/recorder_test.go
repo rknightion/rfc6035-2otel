@@ -60,7 +60,11 @@ func TestRecorderEmitsExactSignalCatalog(t *testing.T) {
 		t.Fatalf("signals = %d, want 9: %#v", len(metrics), metrics)
 	}
 	assertAllAttributeKeys(t, metrics)
-	assertGauge(t, metrics, "rfc6035_2otel.build_info", "1", map[string]string{
+	// The Prometheus compatibility translation appends _ratio to observable
+	// gauges carrying an explicit unit of "1". Build info is dimensionless by
+	// definition, so leave the SDK unit unset to preserve the frozen series
+	// name rfc6035_2otel_build_info.
+	assertGauge(t, metrics, "rfc6035_2otel.build_info", "", map[string]string{
 		"service.version": "v1.2.3", "vcs.ref.head.revision": "abc123",
 		"rfc6035_2otel.build.date": "2026-08-12", "rfc6035_2otel.build.go_version": "go1.26.5",
 	}, 1)
