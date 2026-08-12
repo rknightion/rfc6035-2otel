@@ -4,8 +4,8 @@ description: >-
   Receive Poly RTCP-XR SIP PUBLISH reports over UDP and export metrics and logs
   over OTLP.
 type: application
-version: 0.1.0
-appVersion: 0.1.0
+version: 0.1.1
+appVersion: 0.1.1
 home: https://github.com/rknightion/rfc6035-2otel
 sources:
   - https://github.com/rknightion/rfc6035-2otel
