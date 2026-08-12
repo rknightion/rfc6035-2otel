@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "go",
+  "include-component-in-tag": false,
+  "packages": {
+    ".": {
+      "bump-minor-pre-major": true,
+      "changelog-path": "CHANGELOG.md",
+      "package-name": "rfc6035-2otel",
+      "extra-files": [
+        {"type":"yaml","path":"charts/rfc6035-2otel/Chart.yaml","jsonpath":"$.version"},
+        {"type":"yaml","path":"charts/rfc6035-2otel/Chart.yaml","jsonpath":"$.appVersion"}
+      ]
+    }
+  },
+  "changelog-sections": [
+    {"type":"feat","section":"Features"},
+    {"type":"fix","section":"Bug Fixes"},
+    {"type":"perf","section":"Performance"},
+    {"type":"refactor","section":"Refactoring"},
+    {"type":"docs","section":"Documentation","hidden":true},
+    {"type":"test","section":"Tests","hidden":true},
+    {"type":"chore","section":"Miscellaneous","hidden":true},
+    {"type":"ci","section":"Continuous Integration","hidden":true},
+    {"type":"build","section":"Build System","hidden":true}
+  ]
+}
