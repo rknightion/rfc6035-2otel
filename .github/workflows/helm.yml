@@ -1,0 +1,35 @@
+name: Helm
+on:
+  push:
+    branches: [main]
+    paths:
+      - "charts/**"
+      - ".github/workflows/helm.yml"
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: helm-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  CHART_DIR: charts/rfc6035-2otel
+jobs:
+  lint-template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - run: helm lint "$CHART_DIR"
+      - run: helm template rfc6035-2otel "$CHART_DIR" > /dev/null
+      - run: |
+          make helm-docs
+          git diff --exit-code "$CHART_DIR/README.md"
+  helm-success:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [lint-template]
+    steps:
+      - if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1

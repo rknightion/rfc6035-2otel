@@ -1,0 +1,23 @@
+name: Release assets
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing release tag to rebuild, e.g. v0.1.0"
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  binaries:
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+      attestations: write
+    uses: rknightion/.github/.github/workflows/binaries.yml@d1c590b295b9d7f2535fadc7bc5e74f2eddbd512 # main
+    with:
+      release-tag: ${{ inputs.release_tag }}
+      install-cosign: true
+      goreleaser-args: "release --clean --skip=docker"
+      pre-cmd: "go install github.com/anchore/syft/cmd/syft@v1.42.3"

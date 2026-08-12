@@ -1,0 +1,42 @@
+name: zizmor
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ['**']
+permissions: {}
+jobs:
+  zizmor:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Write zizmor policy
+        run: |
+          if [ ! -e .github/zizmor.yml ]; then
+            mkdir -p .github
+            {
+              echo 'rules:'
+              echo '  unpinned-uses:'
+              echo '    config:'
+              echo '      policies:'
+              echo '        "*": hash-pin'
+            } > .github/zizmor.yml
+          fi
+      - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
+        with:
+          inputs: .
+          online-audits: true
+          persona: regular
+          version: v1.26.1
+          advanced-security: true
+          annotations: false
