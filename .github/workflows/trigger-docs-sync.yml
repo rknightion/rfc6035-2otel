@@ -21,7 +21,7 @@ jobs:
       id-token: write # exchanged for the scoped docs-sync token
     steps:
       - id: bao
-        uses: rknightion/.github/.github/actions/broker-token@1cd0af4cdb0f46266b34f3b981543e32e7c98b4a
+        uses: rknightion/.github/.github/actions/broker-token@06d6727487515cd6628e01696af6f886f1421e04 # role input + token-mask hardening
         with:
           permission-set: docs-sync
           role: docs-sync-rfc6035-2otel
