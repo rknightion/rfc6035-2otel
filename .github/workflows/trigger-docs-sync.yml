@@ -15,7 +15,7 @@ jobs:
     name: trigger documentation sync
     timeout-minutes: 5
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       id-token: write # exchanged for the scoped docs-sync token

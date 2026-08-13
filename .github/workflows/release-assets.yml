@@ -10,6 +10,7 @@ permissions:
   contents: read
 jobs:
   binaries:
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: write # attaches binaries and SBOMs to the release
       id-token: write # obtains keyless signing credentials

@@ -20,6 +20,7 @@ concurrency:
 jobs:
   metadata:
     name: resolve build metadata
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -38,6 +39,7 @@ jobs:
   image:
     name: publish image and chart
     needs: metadata
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     permissions:
       contents: write # publishes release metadata through the reusable workflow
       packages: write # pushes OCI images and charts
