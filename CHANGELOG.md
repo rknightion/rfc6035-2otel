@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.0](https://github.com/rknightion/rfc6035-2otel/compare/v0.1.1...v0.2.0) (2026-08-13)
+
+
+### Features
+
+* **grafana:** add operational dashboard ([951cc2d](https://github.com/rknightion/rfc6035-2otel/commit/951cc2dd6f2afbe8b53481a69372315e1129f978)), closes [#21](https://github.com/rknightion/rfc6035-2otel/issues/21) [#22](https://github.com/rknightion/rfc6035-2otel/issues/22)
+
+
+### Bug Fixes
+
+* **ci:** align broker action contract ([23731cb](https://github.com/rknightion/rfc6035-2otel/commit/23731cbdb37d49e0b5023eebc7c33dde35b67102))
+* **ci:** guard privileged manual dispatches ([66935b3](https://github.com/rknightion/rfc6035-2otel/commit/66935b3a3e932c992524fe07f01649763994d0fe))
+* **grafana:** normalize alert readback defaults ([fae5290](https://github.com/rknightion/rfc6035-2otel/commit/fae5290a558505ead4f8cafe431d1a554bfcfaa7))
+* **grafana:** separate rule inventory from manifests ([ccd0d60](https://github.com/rknightion/rfc6035-2otel/commit/ccd0d60d1fea5c4eb08000bbec58ceccb1257843))
+
 ## [0.1.1](https://github.com/rknightion/rfc6035-2otel/compare/v0.1.0...v0.1.1) (2026-08-12)
 
 
