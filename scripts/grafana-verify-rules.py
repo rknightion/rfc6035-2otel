@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -16,11 +18,50 @@ COLLECTIONS = (
     ("recordingrules.v0alpha1.rules.alerting.grafana.app", "RecordingRule"),
 )
 FOLDER_KEY = "grafana.app/folder"
+DURATION_RE = re.compile(r"(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?")
 
 
 def folder_uid(resource: dict[str, Any]) -> str | None:
     metadata = resource.get("metadata", {})
     return metadata.get("annotations", {}).get(FOLDER_KEY) or metadata.get("labels", {}).get(FOLDER_KEY)
+
+
+def canonical_duration(value: Any) -> Any:
+    """Normalize the non-negative Go duration forms Grafana writes back."""
+    if not isinstance(value, str):
+        return value
+    matched = DURATION_RE.fullmatch(value)
+    if matched is None or not any(matched.groups()):
+        return value
+    hours, minutes, seconds = (int(part or 0) for part in matched.groups())
+    return hours * 3600 + minutes * 60 + seconds
+
+
+def canonical_expressions(expressions: Any) -> Any:
+    """Remove documented server defaults while retaining rule semantics."""
+    if not isinstance(expressions, dict):
+        return expressions
+    normalized = copy.deepcopy(expressions)
+    for expression in normalized.values():
+        if not isinstance(expression, dict):
+            continue
+        model = expression.get("model")
+        if isinstance(model, dict):
+            if model.get("intervalMs") == 1000:
+                model.pop("intervalMs")
+            if model.get("maxDataPoints") == 43200:
+                model.pop("maxDataPoints")
+            datasource = model.get("datasource")
+            if "datasourceUID" not in expression and isinstance(datasource, dict):
+                uid = datasource.get("uid")
+                if isinstance(uid, str) and uid:
+                    expression["datasourceUID"] = uid
+        relative_range = expression.get("relativeTimeRange")
+        if isinstance(relative_range, dict):
+            for boundary in ("from", "to"):
+                if boundary in relative_range:
+                    relative_range[boundary] = canonical_duration(relative_range[boundary])
+    return normalized
 
 
 def semantic_rule(resource: dict[str, Any]) -> dict[str, Any]:
@@ -29,14 +70,14 @@ def semantic_rule(resource: dict[str, Any]) -> dict[str, Any]:
     return {
         "folder": folder_uid(resource),
         "title": spec.get("title"),
-        "paused": spec.get("paused"),
-        "for": spec.get("for"),
+        "paused": spec.get("paused", False),
+        "for": canonical_duration(spec.get("for")),
         "noDataState": spec.get("noDataState"),
         "execErrState": spec.get("execErrState"),
         "trigger": spec.get("trigger"),
         "labels": spec.get("labels"),
         "annotations": spec.get("annotations"),
-        "expressions": spec.get("expressions"),
+        "expressions": canonical_expressions(spec.get("expressions")),
         "panelRef": spec.get("panelRef"),
     }
 

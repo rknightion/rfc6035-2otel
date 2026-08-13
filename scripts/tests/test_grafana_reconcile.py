@@ -174,7 +174,7 @@ class GrafanaRuleProjectionTests(unittest.TestCase):
                 "folder": "rfc-folder",
                 "title": "Packet loss",
                 "paused": False,
-                "for": "5m",
+                "for": 300,
                 "noDataState": "Ok",
                 "execErrState": "Error",
                 "trigger": {"interval": "1m"},
@@ -183,6 +183,107 @@ class GrafanaRuleProjectionTests(unittest.TestCase):
                 "expressions": [{"refId": "A", "model": {"expr": "up"}}],
                 "panelRef": {"uid": "rfc6035-2otel", "id": 12},
             },
+        )
+
+    def test_semantic_projection_normalizes_grafana_rule_defaults(self) -> None:
+        verify = load_script("grafana-verify-rules.py")
+        metadata = {"annotations": {"grafana.app/folder": "rfc-folder"}}
+        expected = {
+            "metadata": metadata,
+            "spec": {
+                "paused": False,
+                "for": "5m",
+                "expressions": {
+                    "A": {
+                        "datasourceUID": "grafanacloud-prom",
+                        "model": {
+                            "datasource": {"type": "prometheus", "uid": "grafanacloud-prom"},
+                            "expr": "up",
+                            "refId": "A",
+                        },
+                        "relativeTimeRange": {"from": "15m", "to": "0s"},
+                    },
+                    "B": {
+                        "datasourceUID": "__expr__",
+                        "model": {
+                            "datasource": {"type": "__expr__", "uid": "__expr__"},
+                            "expression": "A",
+                            "refId": "B",
+                            "type": "reduce",
+                        },
+                    },
+                },
+            },
+        }
+        live = {
+            "metadata": metadata,
+            "spec": {
+                "for": "5m0s",
+                "expressions": {
+                    "A": {
+                        "datasourceUID": "grafanacloud-prom",
+                        "model": {
+                            "datasource": {"type": "prometheus", "uid": "grafanacloud-prom"},
+                            "expr": "up",
+                            "intervalMs": 1000,
+                            "maxDataPoints": 43200,
+                            "refId": "A",
+                        },
+                        "relativeTimeRange": {"from": "15m0s", "to": "0s"},
+                    },
+                    "B": {
+                        "model": {
+                            "datasource": {"type": "__expr__", "uid": "__expr__"},
+                            "expression": "A",
+                            "intervalMs": 1000,
+                            "maxDataPoints": 43200,
+                            "refId": "B",
+                            "type": "reduce",
+                        },
+                    },
+                },
+            },
+        }
+
+        self.assertEqual(verify.semantic_rule(expected), verify.semantic_rule(live))
+
+    def test_semantic_projection_retains_nondefault_model_limits(self) -> None:
+        verify = load_script("grafana-verify-rules.py")
+        expected = {
+            "A": {
+                "model": {
+                    "datasource": {"uid": "grafanacloud-prom"},
+                    "intervalMs": 1000,
+                    "maxDataPoints": 43200,
+                }
+            }
+        }
+        changed_interval = {
+            "A": {
+                "model": {
+                    "datasource": {"uid": "grafanacloud-prom"},
+                    "intervalMs": 5000,
+                    "maxDataPoints": 43200,
+                }
+            }
+        }
+        changed_points = {
+            "A": {
+                "model": {
+                    "datasource": {"uid": "grafanacloud-prom"},
+                    "intervalMs": 1000,
+                    "maxDataPoints": 1000,
+                }
+            }
+        }
+
+        self.assertNotEqual(
+            verify.canonical_expressions(expected),
+            verify.canonical_expressions(changed_interval),
+        )
+        self.assertNotEqual(
+            verify.canonical_expressions(expected),
+            verify.canonical_expressions(changed_points),
         )
 
     def test_compare_rules_reports_semantic_drift_and_stale_extras(self) -> None:
