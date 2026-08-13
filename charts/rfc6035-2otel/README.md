@@ -1,8 +1,8 @@
 # rfc6035-2otel
 
 <!-- x-release-please-start-version -->
-![Version](https://img.shields.io/static/v1?label=Version&message=0.1.1&color=informational&style=flat-square)
-![AppVersion](https://img.shields.io/static/v1?label=AppVersion&message=0.1.1&color=informational&style=flat-square)
+![Version](https://img.shields.io/static/v1?label=Version&message=0.2.0&color=informational&style=flat-square)
+![AppVersion](https://img.shields.io/static/v1?label=AppVersion&message=0.2.0&color=informational&style=flat-square)
 <!-- x-release-please-end -->
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
