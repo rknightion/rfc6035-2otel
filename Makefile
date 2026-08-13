@@ -44,6 +44,7 @@ grafana-check:
 	cd grafana && python3 build_dashboard.py --check
 	cd grafana && python3 build_rules.py --check
 	cd grafana && python3 -m unittest discover -s tests -t . -q
+	python3 -m unittest discover -s scripts/tests -v
 
 helm-docs:
 	@mkdir -p $(TOOLS_DIR)

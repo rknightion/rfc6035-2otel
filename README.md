@@ -21,7 +21,8 @@ every unmatched source collapses to the single `unknown` metric value.
 
 See the [operator documentation](docs/index.md) for [configuration](docs/configuration.md),
 [signals](docs/signals.md), [dialects](docs/dialects.md), [security](docs/security.md),
-and troubleshooting.
+[troubleshooting](docs/troubleshooting.md), [non-Poly compatibility testing](docs/compatibility.md),
+and the [RFC 3611 RTCP-XR boundary](docs/rtcp-xr.md).
 
 ## Licence
 

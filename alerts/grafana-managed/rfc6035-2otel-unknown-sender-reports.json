@@ -1,0 +1,98 @@
+{
+  "apiVersion": "rules.alerting.grafana.app/v0alpha1",
+  "kind": "AlertRule",
+  "metadata": {
+    "annotations": {
+      "grafana.app/folder": "REPLACE_WITH_FOLDER_UID"
+    },
+    "labels": {
+      "grafana.app/folder": "REPLACE_WITH_FOLDER_UID"
+    },
+    "name": "rfc6035-2otel-unknown-sender-reports"
+  },
+  "spec": {
+    "annotations": {
+      "__dashboardUid__": "rfc6035-2otel",
+      "__panelId__": "106",
+      "description": "A site received RFC 6035 reports from the bounded unknown sender over 1h.",
+      "panelKey": "unknown-sender-reports",
+      "runbook_url": "https://github.com/rknightion/rfc6035-2otel/blob/main/docs/troubleshooting.md",
+      "summary": "RFC 6035 reports arrived from an unknown sender"
+    },
+    "execErrState": "Error",
+    "expressions": {
+      "A": {
+        "datasourceUID": "grafanacloud-prom",
+        "model": {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafanacloud-prom"
+          },
+          "expr": "sum by (service_instance_id, rfc6035_sender_name) (increase(rfc6035_2otel_reports_total{rfc6035_sender_name=\"unknown\"}[1h]))",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        },
+        "queryType": "instant",
+        "relativeTimeRange": {
+          "from": "1h",
+          "to": "0s"
+        }
+      },
+      "B": {
+        "datasourceUID": "__expr__",
+        "model": {
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "reducer": "last",
+          "refId": "B",
+          "type": "reduce"
+        }
+      },
+      "C": {
+        "datasourceUID": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "B",
+          "refId": "C",
+          "type": "threshold"
+        },
+        "source": true
+      }
+    },
+    "for": "5m",
+    "labels": {
+      "category": "identity",
+      "pipeline": "rfc6035-2otel",
+      "service": "rfc6035-2otel",
+      "severity": "warning",
+      "source": "rfc6035-2otel"
+    },
+    "noDataState": "Ok",
+    "panelRef": {
+      "dashboardUID": "rfc6035-2otel",
+      "panelID": 106
+    },
+    "paused": false,
+    "title": "RFC 6035 reports from an unknown sender",
+    "trigger": {
+      "interval": "1m"
+    }
+  }
+}

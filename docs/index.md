@@ -33,6 +33,8 @@ wire fields produce no metric observation: **absent is not zero**.
    [Configuration](configuration.md).
 3. Read [Dialects](dialects.md) before assuming a handset's wire format.
 4. Use [Troubleshooting](troubleshooting.md) when a sender retries or output is absent.
+5. Run a real non-Poly endpoint test with [Compatibility](compatibility.md).
+6. Read [RFC 3611 RTCP-XR boundary](rtcp-xr.md) before planning binary RTCP-XR capture.
 
 The service is UDP-only. It does not accept SIP over TCP or TLS, expose a Prometheus
 endpoint, make outbound calls to endpoints, or emit traces.

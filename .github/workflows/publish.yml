@@ -14,8 +14,12 @@ on:
         default: ""
 permissions:
   contents: read
+concurrency:
+  group: publish-${{ inputs.release_tag || github.ref }}
+  cancel-in-progress: false
 jobs:
   metadata:
+    name: resolve build metadata
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -32,13 +36,14 @@ jobs:
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "build_date=$(git show -s --format=%cI HEAD)" >> "$GITHUB_OUTPUT"
   image:
+    name: publish image and chart
     needs: metadata
     permissions:
-      contents: write
-      packages: write
-      id-token: write
-      attestations: write
-      security-events: write
+      contents: write # publishes release metadata through the reusable workflow
+      packages: write # pushes OCI images and charts
+      id-token: write # obtains keyless signing credentials
+      attestations: write # publishes provenance attestations
+      security-events: write # uploads container scan results
     uses: rknightion/.github/.github/workflows/container-publish.yml@65aedb61754e9bf31e947c17409256ba0c58c637 # v1.4.3
     with:
       release-tag: ${{ inputs.release_tag }}

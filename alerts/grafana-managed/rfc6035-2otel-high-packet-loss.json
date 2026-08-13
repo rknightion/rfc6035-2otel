@@ -1,0 +1,98 @@
+{
+  "apiVersion": "rules.alerting.grafana.app/v0alpha1",
+  "kind": "AlertRule",
+  "metadata": {
+    "annotations": {
+      "grafana.app/folder": "REPLACE_WITH_FOLDER_UID"
+    },
+    "labels": {
+      "grafana.app/folder": "REPLACE_WITH_FOLDER_UID"
+    },
+    "name": "rfc6035-2otel-high-packet-loss"
+  },
+  "spec": {
+    "annotations": {
+      "__dashboardUid__": "rfc6035-2otel",
+      "__panelId__": "105",
+      "description": "The p95 packet loss for a reporting site and sender is above 5% over 15m.",
+      "panelKey": "packet-loss-p95",
+      "runbook_url": "https://github.com/rknightion/rfc6035-2otel/blob/main/docs/troubleshooting.md",
+      "summary": "High packet loss in arriving RFC 6035 reports"
+    },
+    "execErrState": "Error",
+    "expressions": {
+      "A": {
+        "datasourceUID": "grafanacloud-prom",
+        "model": {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafanacloud-prom"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name) (increase(rfc6035_call_packet_loss_bucket[15m]))) and on (service_instance_id, rfc6035_sender_name) sum by (service_instance_id, rfc6035_sender_name) (increase(rfc6035_2otel_reports_total[15m])) > 0",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        },
+        "queryType": "instant",
+        "relativeTimeRange": {
+          "from": "15m",
+          "to": "0s"
+        }
+      },
+      "B": {
+        "datasourceUID": "__expr__",
+        "model": {
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "reducer": "last",
+          "refId": "B",
+          "type": "reduce"
+        }
+      },
+      "C": {
+        "datasourceUID": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  0.05
+                ],
+                "type": "gt"
+              }
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "B",
+          "refId": "C",
+          "type": "threshold"
+        },
+        "source": true
+      }
+    },
+    "for": "5m",
+    "labels": {
+      "category": "quality",
+      "pipeline": "rfc6035-2otel",
+      "service": "rfc6035-2otel",
+      "severity": "warning",
+      "source": "rfc6035-2otel"
+    },
+    "noDataState": "Ok",
+    "panelRef": {
+      "dashboardUID": "rfc6035-2otel",
+      "panelID": 105
+    },
+    "paused": false,
+    "title": "High packet loss in arriving RFC 6035 reports",
+    "trigger": {
+      "interval": "1m"
+    }
+  }
+}

@@ -8,10 +8,10 @@ permissions: {}
 jobs:
   codeql:
     permissions:
-      security-events: write
-      packages: read
-      actions: read
-      contents: read
+      security-events: write # uploads CodeQL results
+      packages: read # permits analysis of package metadata
+      actions: read # reads workflow metadata for Actions analysis
+      contents: read # checks out and analyzes repository source
     uses: rknightion/.github/.github/workflows/codeql.yml@65aedb61754e9bf31e947c17409256ba0c58c637 # v1.4.3
     with:
       languages: '[{"language":"go","build-mode":"autobuild"},{"language":"actions","build-mode":"none"}]'

@@ -6,13 +6,17 @@ on:
     - cron: '33 5 * * 2'
   workflow_dispatch:
 permissions: {}
+concurrency:
+  group: docker-security-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   hadolint:
+    name: hadolint
     runs-on: ubuntu-latest
     permissions:
-      actions: read
-      contents: read
-      security-events: write
+      actions: read # required by the hardening action
+      contents: read # scans the repository Dockerfiles
+      security-events: write # uploads hadolint SARIF
     steps:
       - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
         with:
@@ -38,11 +42,12 @@ jobs:
           sarif_file: hadolint.sarif
           category: hadolint
   trivy:
+    name: trivy filesystem scan
     runs-on: ubuntu-latest
     permissions:
-      actions: read
-      contents: read
-      security-events: write
+      actions: read # required by the hardening action
+      contents: read # scans the repository filesystem
+      security-events: write # uploads Trivy SARIF
     steps:
       - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
         with:

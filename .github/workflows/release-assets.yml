@@ -11,10 +11,10 @@ permissions:
 jobs:
   binaries:
     permissions:
-      contents: write
-      id-token: write
-      packages: write
-      attestations: write
+      contents: write # attaches binaries and SBOMs to the release
+      id-token: write # obtains keyless signing credentials
+      packages: write # supports reusable release tooling package access
+      attestations: write # publishes provenance attestations
     uses: rknightion/.github/.github/workflows/binaries.yml@d1c590b295b9d7f2535fadc7bc5e74f2eddbd512 # main
     with:
       release-tag: ${{ inputs.release_tag }}

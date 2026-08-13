@@ -1,0 +1,349 @@
+name: grafana-sync
+
+# Dashboards are owned by Grafana GitSync, while alert rules are App Platform
+# resources. Keep both delivery paths serialized: Grafana can also write UI
+# saves to the GitSync repository, and a rules reconcile must not overlap it.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dashboards/rfc6035-2otel.json'
+      - 'alerts/grafana-managed/**'
+      - 'grafana/**'
+      - 'scripts/grafana-prune-rules.py'
+      - 'scripts/grafana-verify-rules.py'
+      - 'scripts/verify-gitsync.py'
+      - '.github/workflows/grafana-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: grafana-sync
+  cancel-in-progress: false
+
+env:
+  GCX_VERSION: '1.0.0'
+  GCX_SHA256: 'c88c65958d19d83dc3a192a2a5037e08307a9c776019f24249b89f369c9c4d41'
+  GRAFANA_CONTEXT: m7kni
+  RULES_FOLDER_TITLE: rfc6035-2otel
+
+jobs:
+  dashboards:
+    name: publish dashboard to GitSync
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write # exchanged for a scoped GitSync write token
+    env:
+      GCX_CONFIG: ${{ github.workspace }}/.gcx-ci.yaml
+      GRAFANA_STACK_ID: ${{ vars.GRAFANA_STACK_ID }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Mint a scoped GitSync token
+        id: bao
+        uses: rknightion/.github/.github/actions/broker-token@06d6727487515cd6628e01696af6f886f1421e04
+        with:
+          permission-set: gitsync
+          role: gitsync-rfc6035-2otel
+          tailscale-client-id: ${{ secrets.TS_WIF_CLIENT_ID }}
+          tailscale-audience: ${{ secrets.TS_WIF_AUDIENCE }}
+
+      - name: Check out the GitSync repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: rknightion/gc-gitsync-m7kni
+          token: ${{ steps.bao.outputs.token }}
+          path: gitsync
+          persist-credentials: false
+
+      - name: Copy the generated dashboard into place
+        run: |
+          set -euo pipefail
+          cp dashboards/rfc6035-2otel.json gitsync/networking/rfc6035-2otel.json
+
+      - name: Commit and push
+        id: push
+        working-directory: gitsync
+        env:
+          GITSYNC_TOKEN: ${{ steps.bao.outputs.token }}
+        run: |
+          set -euo pipefail
+          trap 'git remote set-url origin https://github.com/rknightion/gc-gitsync-m7kni.git' EXIT
+          git remote set-url origin "https://x-access-token:${GITSYNC_TOKEN}@github.com/rknightion/gc-gitsync-m7kni.git"
+          git add networking/rfc6035-2otel.json
+          if git diff --cached --quiet; then
+            echo "dashboard already matches the stack source"
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m "Sync rfc6035-2otel dashboard from ${GITHUB_REPOSITORY}@${GITHUB_SHA}"
+            for attempt in 1 2 3; do
+              if git push; then
+                break
+              fi
+              echo "push rejected (attempt ${attempt}) — rebasing onto origin/main"
+              git pull --rebase origin main
+              if [ "${attempt}" = 3 ]; then
+                echo "::error::could not push dashboard to gc-gitsync-m7kni after 3 attempts"
+                exit 1
+              fi
+            done
+          fi
+          echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "blob=$(git rev-parse HEAD:networking/rfc6035-2otel.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Install gcx
+        run: |
+          set -euo pipefail
+          curl -fsSL -o gcx.tgz \
+            "https://github.com/grafana/gcx/releases/download/v${GCX_VERSION}/gcx_${GCX_VERSION}_linux_amd64.tar.gz"
+          echo "${GCX_SHA256}  gcx.tgz" | sha256sum -c -
+          tar -xzf gcx.tgz gcx
+          sudo install -m 0755 gcx /usr/local/bin/gcx
+          rm -f gcx gcx.tgz
+          gcx version
+
+      - name: Write the gcx context
+        env:
+          GRAFANA_SERVER: ${{ vars.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$GCX_CONFIG" <<EOF
+          version: 1
+          stacks:
+            m7kni:
+              grafana:
+                server: ${GRAFANA_SERVER}
+                token: ${GRAFANA_TOKEN}
+                auth-method: token
+                stack-id: ${GRAFANA_STACK_ID}
+          contexts:
+            m7kni:
+              stack: m7kni
+          current-context: m7kni
+          EOF
+
+      - name: Resolve the live GitSync identities
+        id: gitsync
+        env:
+          GITSYNC_REPOSITORY: https://github.com/rknightion/gc-gitsync-m7kni
+          GITSYNC_FOLDER_TITLE: networking
+        run: |
+          set -euo pipefail
+          gcx resources get repositories folders \
+            --context "$GRAFANA_CONTEXT" --limit 0 -o json > gitsync-resources.json
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          document = json.loads(Path("gitsync-resources.json").read_text(encoding="utf-8"))
+          items = document.get("items", [])
+          repositories = [
+              item for item in items
+              if item.get("kind") == "Repository"
+              and item.get("spec", {}).get("github", {}).get("url") == os.environ["GITSYNC_REPOSITORY"]
+          ]
+          if len(repositories) != 1:
+              raise SystemExit(
+                  f"expected exactly one GitSync repository for {os.environ['GITSYNC_REPOSITORY']}, "
+                  f"got {len(repositories)}"
+              )
+          manager_id = repositories[0].get("metadata", {}).get("name")
+          folders = [
+              item for item in items
+              if item.get("kind") == "Folder"
+              and item.get("spec", {}).get("title") == os.environ["GITSYNC_FOLDER_TITLE"]
+              and item.get("metadata", {}).get("annotations", {}).get("grafana.app/managerId") == manager_id
+          ]
+          if len(folders) != 1:
+              raise SystemExit(
+                  f"expected exactly one {os.environ['GITSYNC_FOLDER_TITLE']} folder managed by "
+                  f"{manager_id}, got {len(folders)}"
+              )
+          folder_uid = folders[0].get("metadata", {}).get("name")
+          if not manager_id or not folder_uid:
+              raise SystemExit("resolved GitSync identities must not be empty")
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+              print(f"manager_id={manager_id}", file=output)
+              print(f"folder_uid={folder_uid}", file=output)
+          PY
+          rm -f gitsync-resources.json
+
+      - name: Verify Grafana applied the dashboard
+        env:
+          GITSYNC_FOLDER_UID: ${{ steps.gitsync.outputs.folder_uid }}
+          GITSYNC_MANAGER_ID: ${{ steps.gitsync.outputs.manager_id }}
+          PUSHED_BLOB: ${{ steps.push.outputs.blob }}
+          PUSHED_REF: ${{ steps.push.outputs.ref }}
+        run: |
+          python3 scripts/verify-gitsync.py \
+            --manager-id "$GITSYNC_MANAGER_ID" \
+            --source-path networking/rfc6035-2otel.json \
+            --blob-sha "$PUSHED_BLOB" \
+            --commit-sha "$PUSHED_REF" \
+            --folder-uid "$GITSYNC_FOLDER_UID" \
+            --context "$GRAFANA_CONTEXT"
+
+      - name: Remove the gcx context
+        if: always()
+        run: rm -f "$GCX_CONFIG"
+
+  rules:
+    name: publish Grafana alert rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GCX_CONFIG: ${{ github.workspace }}/.gcx-ci.yaml
+      GRAFANA_STACK_ID: ${{ vars.GRAFANA_STACK_ID }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install gcx
+        run: |
+          set -euo pipefail
+          curl -fsSL -o gcx.tgz \
+            "https://github.com/grafana/gcx/releases/download/v${GCX_VERSION}/gcx_${GCX_VERSION}_linux_amd64.tar.gz"
+          echo "${GCX_SHA256}  gcx.tgz" | sha256sum -c -
+          tar -xzf gcx.tgz gcx
+          sudo install -m 0755 gcx /usr/local/bin/gcx
+          rm -f gcx gcx.tgz
+          gcx version
+
+      - name: Write the gcx context
+        env:
+          GRAFANA_SERVER: ${{ vars.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$GCX_CONFIG" <<EOF
+          version: 1
+          stacks:
+            m7kni:
+              grafana:
+                server: ${GRAFANA_SERVER}
+                token: ${GRAFANA_TOKEN}
+                auth-method: token
+                stack-id: ${GRAFANA_STACK_ID}
+          contexts:
+            m7kni:
+              stack: m7kni
+          current-context: m7kni
+          EOF
+
+      - name: Resolve the existing alerts folder UID
+        run: |
+          set -euo pipefail
+          mapfile -t folder_uids < <(
+            gcx resources get folders --context "$GRAFANA_CONTEXT" --limit 0 -o json \
+              | python3 -c '
+          import json
+          import os
+          import sys
+          for item in json.load(sys.stdin).get("items", []):
+              if item.get("spec", {}).get("title") == os.environ["RULES_FOLDER_TITLE"]:
+                  print(item.get("metadata", {}).get("name", ""))
+          '
+          )
+          if [ "${#folder_uids[@]}" -ne 1 ] || [ -z "${folder_uids[0]}" ]; then
+            echo "::error::expected exactly one existing folder titled ${RULES_FOLDER_TITLE}"
+            exit 1
+          fi
+          echo "resolved ${RULES_FOLDER_TITLE} -> ${folder_uids[0]}"
+          echo "RULES_FOLDER_UID=${folder_uids[0]}" >> "$GITHUB_ENV"
+
+      - name: Stage temporary rule manifests
+        run: |
+          set -euo pipefail
+          deployment_dir="$(mktemp -d "${RUNNER_TEMP}/rfc6035-rules.XXXXXX")"
+          cp alerts/grafana-managed/*.json "$deployment_dir/"
+          python3 - "$deployment_dir" "$RULES_FOLDER_UID" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          deployment_dir = Path(sys.argv[1])
+          folder_uid = sys.argv[2]
+          for path in deployment_dir.glob("*.json"):
+              document = json.loads(path.read_text(encoding="utf-8"))
+              metadata = document.setdefault("metadata", {})
+              metadata.setdefault("annotations", {})["grafana.app/folder"] = folder_uid
+              metadata.setdefault("labels", {})["grafana.app/folder"] = folder_uid
+              path.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+          echo "RULES_DEPLOY_DIR=${deployment_dir}" >> "$GITHUB_ENV"
+
+      - name: List the rule identities this repository defines
+        run: |
+          set -euo pipefail
+          python3 - "$RULES_DEPLOY_DIR" > "$RULES_DEPLOY_DIR/expected-rules.txt" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          for path in sorted(Path(sys.argv[1]).glob("*.json")):
+              document = json.loads(path.read_text(encoding="utf-8"))
+              kind = document.get("kind")
+              name = document.get("metadata", {}).get("name")
+              if kind in {"AlertRule", "RecordingRule"} and isinstance(name, str) and name:
+                  print(f"{kind}/{name}")
+          PY
+          test -s "$RULES_DEPLOY_DIR/expected-rules.txt"
+          echo "this repository defines $(wc -l < "$RULES_DEPLOY_DIR/expected-rules.txt") rules"
+
+      - name: Dry-run prune and validate rule manifests
+        run: |
+          set -euo pipefail
+          python3 scripts/grafana-prune-rules.py \
+            --expected-names "$RULES_DEPLOY_DIR/expected-rules.txt" \
+            --folder-uid "$RULES_FOLDER_UID" \
+            --context "$GRAFANA_CONTEXT" \
+            --dry-run
+          gcx resources validate -p "$RULES_DEPLOY_DIR" --context "$GRAFANA_CONTEXT" -o json
+
+      - name: Prune rules the repository no longer defines
+        run: |
+          python3 scripts/grafana-prune-rules.py \
+            --expected-names "$RULES_DEPLOY_DIR/expected-rules.txt" \
+            --folder-uid "$RULES_FOLDER_UID" \
+            --context "$GRAFANA_CONTEXT"
+
+      - name: Push rule manifests
+        run: |
+          gcx resources push -p "$RULES_DEPLOY_DIR" \
+            --context "$GRAFANA_CONTEXT" \
+            --on-error abort
+
+      - name: Verify Grafana rules semantically
+        run: |
+          python3 scripts/grafana-verify-rules.py \
+            --expected-dir "$RULES_DEPLOY_DIR" \
+            --folder-uid "$RULES_FOLDER_UID" \
+            --context "$GRAFANA_CONTEXT"
+
+      - name: Remove temporary deployment material
+        if: always()
+        run: |
+          rm -f "$GCX_CONFIG"
+          if [ -n "${RULES_DEPLOY_DIR:-}" ]; then
+            case "$RULES_DEPLOY_DIR" in
+              "$RUNNER_TEMP"/rfc6035-rules.*)
+                rm -rf -- "$RULES_DEPLOY_DIR"
+                ;;
+              *)
+                echo "::error::refusing to remove unexpected rules directory: $RULES_DEPLOY_DIR"
+                exit 1
+                ;;
+            esac
+          fi

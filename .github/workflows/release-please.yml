@@ -9,11 +9,12 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release-please:
+    name: prepare or publish release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
-      id-token: write
+      contents: write # updates release branches, tags and GitHub releases
+      pull-requests: write # opens and maintains the release pull request
+      id-token: write # exchanges OIDC for the scoped release token
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -34,12 +35,12 @@ jobs:
     if: needs.release-please.outputs.release_created == 'true'
     uses: ./.github/workflows/publish.yml
     permissions:
-      actions: read
-      contents: write
-      packages: write
-      id-token: write
-      attestations: write
-      security-events: write
+      actions: read # permits reusable workflow metadata access
+      contents: write # publishes release metadata
+      packages: write # pushes the release image and chart
+      id-token: write # obtains keyless signing credentials
+      attestations: write # publishes provenance attestations
+      security-events: write # uploads container scan results
     with:
       release_tag: ${{ needs.release-please.outputs.tag_name }}
   edge:
@@ -47,22 +48,22 @@ jobs:
     if: needs.release-please.outputs.release_created != 'true'
     uses: ./.github/workflows/publish.yml
     permissions:
-      actions: read
-      contents: write
-      packages: write
-      id-token: write
-      attestations: write
-      security-events: write
+      actions: read # permits reusable workflow metadata access
+      contents: write # publishes edge metadata
+      packages: write # pushes the edge image and chart
+      id-token: write # obtains keyless signing credentials
+      attestations: write # publishes provenance attestations
+      security-events: write # uploads container scan results
     with:
       release_tag: ""
   binaries:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
     permissions:
-      contents: write
-      id-token: write
-      packages: write
-      attestations: write
+      contents: write # attaches binaries and SBOMs to the release
+      id-token: write # obtains keyless signing credentials
+      packages: write # supports reusable release tooling package access
+      attestations: write # publishes provenance attestations
     uses: rknightion/.github/.github/workflows/binaries.yml@d1c590b295b9d7f2535fadc7bc5e74f2eddbd512 # main
     with:
       release-tag: ${{ needs.release-please.outputs.tag_name }}

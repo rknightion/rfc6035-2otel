@@ -1,493 +1,2966 @@
 {
-  "panels": [
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "panels": [],
-      "title": "Call quality",
-      "type": "row"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 1
-      },
-      "id": 2,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_mos_lq_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "MOS LQ",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 1
-      },
-      "id": 3,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_mos_cq_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "MOS CQ",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 9
-      },
-      "id": 4,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_r_factor_lq_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "R-factor LQ",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 9
-      },
-      "id": 5,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_r_factor_cq_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "R-factor CQ",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 17
-      },
-      "id": 6,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_packet_loss_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Packet loss",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 17
-      },
-      "id": 7,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_discard_rate_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Discard rate",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 25
-      },
-      "id": 8,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name, rfc6035_jitter_kind) (rate(rfc6035_call_jitter_seconds_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}} {{rfc6035_jitter_kind}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Jitter",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 25
-      },
-      "id": 9,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_round_trip_delay_seconds_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Round-trip delay",
-      "type": "timeseries"
-    },
-    {
-      "description": "No data is normal: the captured Poly reports omit ESD and SOWD.",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 33
-      },
-      "id": 10,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect, rfc6035_report_type, rfc6035_report_side, rfc6035_sender_name) (rate(rfc6035_call_one_way_delay_seconds_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_report_side}} {{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "One-way delay",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 41
-      },
-      "id": 11,
-      "panels": [],
-      "title": "Collector health",
-      "type": "row"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 42
-      },
-      "id": 12,
-      "targets": [
-        {
-          "expr": "rfc6035_2otel_build_info",
-          "legendFormat": "{{service_version}} {{vcs_ref_head_revision}} {{rfc6035_2otel_build_date}} {{rfc6035_2otel_build_go_version}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Build info",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 42
-      },
-      "id": 13,
-      "targets": [
-        {
-          "expr": "sum by (rfc6035_2otel_datagram_outcome) (rate(rfc6035_2otel_datagrams_total[5m]))",
-          "legendFormat": "{{rfc6035_2otel_datagram_outcome}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Datagram outcomes",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 50
-      },
-      "id": 14,
-      "targets": [
-        {
-          "expr": "sum by (rfc6035_report_dialect, rfc6035_report_type, rfc6035_sender_name) (rate(rfc6035_2otel_reports_total[5m]))",
-          "legendFormat": "{{rfc6035_report_dialect}} {{rfc6035_report_type}} {{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Reports by dialect, type, and sender",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 50
-      },
-      "id": 15,
-      "targets": [
-        {
-          "expr": "sum by (error_type) (rate(rfc6035_2otel_parse_errors_total[5m]))",
-          "legendFormat": "{{error_type}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Parse errors",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 58
-      },
-      "id": 16,
-      "targets": [
-        {
-          "expr": "sum by (rfc6035_sender_name) (rate(rfc6035_2otel_duplicates_total[5m]))",
-          "legendFormat": "{{rfc6035_sender_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Duplicates / dedupe hits",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 58
-      },
-      "id": 17,
-      "targets": [
-        {
-          "expr": "sum by (rfc6035_response_status_code) (rate(rfc6035_2otel_responses_total[5m]))",
-          "legendFormat": "{{rfc6035_response_status_code}}",
-          "refId": "A"
-        }
-      ],
-      "title": "SIP responses",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 66
-      },
-      "id": 18,
-      "targets": [
-        {
-          "expr": "sum by (rfc6035_2otel_signal) (rate(rfc6035_2otel_export_failures_total[5m]))",
-          "legendFormat": "{{rfc6035_2otel_signal}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Export failures",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 66
-      },
-      "id": 19,
-      "targets": [
-        {
-          "expr": "rfc6035_2otel_dedupe_cache_usage",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Dedupe cache usage",
-      "type": "timeseries"
-    },
-    {
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 74
-      },
-      "id": 20,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect) (rate(rfc6035_2otel_report_process_duration_seconds_bucket[5m])))",
-          "legendFormat": "{{rfc6035_report_dialect}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Report processing duration",
-      "type": "timeseries"
-    }
-  ],
-  "refresh": "1m",
-  "schemaVersion": 41,
-  "tags": [
-    "rfc6035",
-    "generated"
-  ],
-  "time": {
-    "from": "now-6h",
-    "to": "now"
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "rfc6035-2otel"
   },
-  "timezone": "browser",
-  "title": "RFC 6035 voice quality",
-  "uid": "rfc6035-2otel"
+  "spec": {
+    "annotations": [],
+    "cursorSync": "Crosshair",
+    "description": "Operational quality and collector health for RFC 6035 reports. Generated by grafana/build_dashboard.py.",
+    "elements": {
+      "panel-101": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_loki}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_loki}"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum(count_over_time({service_name=\"rfc6035-2otel\",service_instance_id=~\"$site\"} | event_name=`rfc6035.report.received` | rfc6035_sender_name=~\"$sender\" [$__range]))",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 101,
+          "links": [],
+          "title": "exact reports in selected range",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-102": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_loki}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_loki}"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "count(sum by (rfc6035_sender_name) (count_over_time({service_name=\"rfc6035-2otel\",service_instance_id=~\"$site\"} | event_name=`rfc6035.report.received` | rfc6035_sender_name=~\"$sender\" [$__range])))",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 102,
+          "links": [],
+          "title": "reporting handsets",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-103": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "(sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_sum{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) / sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 103,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "mean MOS LQ",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "none"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-104": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 104,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "p95 MOS LQ",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "none"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-105": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_packet_loss_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_packet_loss_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 105,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "p95 packet loss",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "percentunit"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-106": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum(increase(rfc6035_2otel_reports_total{rfc6035_sender_name=\"unknown\",service_instance_id=~\"$site\"}[$__range]))",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 106,
+          "links": [],
+          "title": "unknown-sender reports",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-107": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum(increase(rfc6035_2otel_export_failures_total{service_instance_id=~\"$site\"}[$__range]))",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 107,
+          "links": [],
+          "title": "export failures",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-108": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_round_trip_delay_seconds_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_round_trip_delay_seconds_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 108,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "p95 RTT",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "s"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-109": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side, rfc6035_jitter_kind) (increase(rfc6035_call_jitter_seconds_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side, rfc6035_jitter_kind) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side, rfc6035_jitter_kind) (increase(rfc6035_call_jitter_seconds_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 109,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "p95 jitter",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "s"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-110": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 110,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "per-handset quality",
+          "vizConfig": {
+            "group": "bargauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "none"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-201": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "(sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_sum{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h])) / sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h])) > 0",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_lq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h])) > 0",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "B"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 201,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "MOS LQ mean and p95",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "none"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-202": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "(sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_cq_sum{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h])) / sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_cq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_cq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h])) > 0",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_cq_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_mos_cq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h])) > 0",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "B"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 202,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "MOS CQ mean and p95",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "none"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-203": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_packet_loss_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_packet_loss_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h])) > 0",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 203,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "packet loss p95",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "percentunit"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-204": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side, rfc6035_jitter_kind) (increase(rfc6035_call_jitter_seconds_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side, rfc6035_jitter_kind) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side, rfc6035_jitter_kind) (increase(rfc6035_call_jitter_seconds_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h])) > 0",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 204,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "jitter p95 by kind",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "s"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-205": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_round_trip_delay_seconds_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_round_trip_delay_seconds_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h])) > 0",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 205,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "RTT p95",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "s"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-206": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum by (service_instance_id, rfc6035_sender_name) (increase(rfc6035_2otel_reports_total{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[24h]))",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 206,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "report volume",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-301": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_loki}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_loki}"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "{service_name=\"rfc6035-2otel\",service_instance_id=~\"$site\"} | event_name=\"rfc6035.report.received\" | rfc6035_sender_name=~\"$sender\"",
+                        "format": "logs",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 301,
+          "links": [],
+          "title": "raw RFC 6035 reports",
+          "vizConfig": {
+            "group": "logs",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-401": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_r_factor_lq_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_r_factor_lq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 401,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "R-factor LQ p95",
+          "vizConfig": {
+            "group": "bargauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "none"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-402": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_r_factor_cq_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_r_factor_cq_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 402,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "R-factor CQ p95",
+          "vizConfig": {
+            "group": "bargauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "none"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-403": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_discard_rate_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_discard_rate_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 403,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "discard rate p95",
+          "vizConfig": {
+            "group": "bargauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "percentunit"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-404": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum by (rfc6035_report_dialect, rfc6035_report_type, rfc6035_sender_name) (rate(rfc6035_2otel_reports_total{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[5m]))",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 404,
+          "links": [],
+          "title": "reports by dialect",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-405": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum by (rfc6035_report_type) (increase(rfc6035_2otel_reports_total{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 405,
+          "links": [],
+          "title": "reports by type",
+          "vizConfig": {
+            "group": "bargauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-406": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side, rfc6035_jitter_kind) (increase(rfc6035_call_jitter_seconds_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side, rfc6035_jitter_kind) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side, rfc6035_jitter_kind) (increase(rfc6035_call_jitter_seconds_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 406,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "quality by endpoint side",
+          "vizConfig": {
+            "group": "bargauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "s"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-407": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_one_way_delay_seconds_bucket{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range]))) and on (service_instance_id, rfc6035_sender_name, rfc6035_report_side) sum by (service_instance_id, rfc6035_sender_name, rfc6035_report_side) (increase(rfc6035_call_one_way_delay_seconds_count{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[$__range])) > 0",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 407,
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open raw reports",
+              "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&${site:queryparam}&${sender:queryparam}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+            }
+          ],
+          "title": "one-way delay p95",
+          "vizConfig": {
+            "group": "bargauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Open matching raw reports",
+                      "url": "/d/rfc6035-2otel?dtab=Raw-Reports&${__url_time_range}&var-site=${__field.labels.service_instance_id}&var-sender=${__field.labels.rfc6035_sender_name}&${ds_prometheus:queryparam}&${ds_loki:queryparam}"
+                    }
+                  ],
+                  "unit": "s"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-501": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "rfc6035_2otel_build_info{service_instance_id=~\"$site\"}",
+                        "format": "table",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 501,
+          "links": [],
+          "title": "build info",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-502": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum by (rfc6035_2otel_datagram_outcome) (rate(rfc6035_2otel_datagrams_total{service_instance_id=~\"$site\"}[5m]))",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 502,
+          "links": [],
+          "title": "datagrams by outcome",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ops"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-503": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum by (rfc6035_report_dialect, rfc6035_report_type, rfc6035_sender_name) (rate(rfc6035_2otel_reports_total{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[5m]))",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 503,
+          "links": [],
+          "title": "reports by dialect, type, and sender",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ops"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-504": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum by (error_type) (rate(rfc6035_2otel_parse_errors_total{service_instance_id=~\"$site\"}[5m]))",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 504,
+          "links": [],
+          "title": "parse errors by error type",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ops"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-505": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum by (rfc6035_sender_name) (rate(rfc6035_2otel_duplicates_total{service_instance_id=~\"$site\", rfc6035_sender_name=~\"$sender\"}[5m]))",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 505,
+          "links": [],
+          "title": "duplicates by sender",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ops"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-506": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum by (rfc6035_response_status_code) (rate(rfc6035_2otel_responses_total{service_instance_id=~\"$site\"}[5m]))",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 506,
+          "links": [],
+          "title": "SIP responses by status",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ops"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-507": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "rfc6035_2otel_dedupe_cache_usage{service_instance_id=~\"$site\"}",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 507,
+          "links": [],
+          "title": "dedupe cache usage",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-508": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "histogram_quantile(0.95, sum by (le, rfc6035_report_dialect) (rate(rfc6035_2otel_report_process_duration_seconds_bucket{service_instance_id=~\"$site\"}[5m])))",
+                        "format": "time_series",
+                        "instant": false,
+                        "legendFormat": "",
+                        "range": true,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 508,
+          "links": [],
+          "title": "report processing duration p95",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "s"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      },
+      "panel-509": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "datasource": {
+                      "uid": "${ds_prometheus}"
+                    },
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "${ds_prometheus}"
+                      },
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "expr": "sum by (service_instance_id, rfc6035_2otel_signal) (increase(rfc6035_2otel_export_failures_total{service_instance_id=~\"$site\"}[$__range]))",
+                        "format": "time_series",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false,
+                        "refId": "A"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 509,
+          "links": [],
+          "title": "export failures by signal",
+          "vizConfig": {
+            "group": "bargauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "12.1.0"
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "TabsLayout",
+      "spec": {
+        "tabs": [
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "layout": {
+                "kind": "RowsLayout",
+                "spec": {
+                  "rows": [
+                    {
+                      "kind": "RowsLayoutRow",
+                      "spec": {
+                        "collapse": false,
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-101"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-102"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 6,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-103"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 12,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-104"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 18,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-105"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-106"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 6,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-107"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 12,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-108"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 18,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-109"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 14
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-110"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 6,
+                                  "y": 14
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": "Operational summary"
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "Operations"
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "layout": {
+                "kind": "RowsLayout",
+                "spec": {
+                  "rows": [
+                    {
+                      "kind": "RowsLayoutRow",
+                      "spec": {
+                        "collapse": false,
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-201"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-202"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 6,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-203"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 12,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-204"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 18,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-205"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-206"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 6,
+                                  "y": 7
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": "Quality by site and handset"
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "Call quality"
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "layout": {
+                "kind": "RowsLayout",
+                "spec": {
+                  "rows": [
+                    {
+                      "kind": "RowsLayoutRow",
+                      "spec": {
+                        "collapse": false,
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-301"
+                                  },
+                                  "height": 7,
+                                  "width": 24,
+                                  "x": 0,
+                                  "y": 0
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": "Received RFC 6035 reports"
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "Raw Reports"
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "layout": {
+                "kind": "RowsLayout",
+                "spec": {
+                  "rows": [
+                    {
+                      "kind": "RowsLayoutRow",
+                      "spec": {
+                        "collapse": false,
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-401"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-402"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 6,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-403"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 12,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-404"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 18,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-405"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-406"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 6,
+                                  "y": 7
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": "Quality diagnostics"
+                      }
+                    },
+                    {
+                      "kind": "RowsLayoutRow",
+                      "spec": {
+                        "collapse": false,
+                        "conditionalRendering": {
+                          "kind": "ConditionalRenderingGroup",
+                          "spec": {
+                            "condition": "and",
+                            "items": [
+                              {
+                                "kind": "ConditionalRenderingVariable",
+                                "spec": {
+                                  "operator": "matches",
+                                  "value": ".+",
+                                  "variable": "has_one_way_delay"
+                                }
+                              }
+                            ],
+                            "visibility": "show"
+                          }
+                        },
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-407"
+                                  },
+                                  "height": 7,
+                                  "width": 24,
+                                  "x": 0,
+                                  "y": 0
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": "One-way delay"
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "Diagnostics"
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "layout": {
+                "kind": "RowsLayout",
+                "spec": {
+                  "rows": [
+                    {
+                      "kind": "RowsLayoutRow",
+                      "spec": {
+                        "collapse": false,
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-501"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-502"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 6,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-503"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 12,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-504"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 18,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-505"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-506"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 6,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-507"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 12,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-508"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 18,
+                                  "y": 7
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-509"
+                                  },
+                                  "height": 7,
+                                  "width": 6,
+                                  "x": 0,
+                                  "y": 14
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": "Collector self-observability"
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "Collector"
+            }
+          }
+        ]
+      }
+    },
+    "links": [],
+    "preload": false,
+    "tags": [
+      "rfc6035",
+      "generated"
+    ],
+    "timeSettings": {
+      "autoRefresh": "1m",
+      "autoRefreshIntervals": [
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "1h"
+      ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-6h",
+      "hideTimepicker": false,
+      "timezone": "browser",
+      "to": "now"
+    },
+    "title": "RFC 6035 voice quality",
+    "variables": [
+      {
+        "kind": "DatasourceVariable",
+        "spec": {
+          "allowCustomValue": true,
+          "current": {
+            "text": "grafanacloud-prom",
+            "value": "grafanacloud-prom"
+          },
+          "hide": "dontHide",
+          "includeAll": false,
+          "label": "Prometheus",
+          "multi": false,
+          "name": "ds_prometheus",
+          "options": [],
+          "pluginId": "prometheus",
+          "refresh": "onDashboardLoad",
+          "regex": "",
+          "skipUrlSync": false
+        }
+      },
+      {
+        "kind": "DatasourceVariable",
+        "spec": {
+          "allowCustomValue": true,
+          "current": {
+            "text": "grafanacloud-logs",
+            "value": "grafanacloud-logs"
+          },
+          "hide": "dontHide",
+          "includeAll": false,
+          "label": "Loki",
+          "multi": false,
+          "name": "ds_loki",
+          "options": [],
+          "pluginId": "loki",
+          "refresh": "onDashboardLoad",
+          "regex": "",
+          "skipUrlSync": false
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "allValue": ".*",
+          "allowCustomValue": true,
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Site",
+          "multi": true,
+          "name": "site",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "${ds_prometheus}"
+            },
+            "group": "",
+            "kind": "DataQuery",
+            "spec": {
+              "query": "label_values(rfc6035_2otel_reports_total, service_instance_id)",
+              "refId": "site"
+            },
+            "version": "v0"
+          },
+          "refresh": "onTimeRangeChanged",
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": "alphabeticalAsc"
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "allValue": ".*",
+          "allowCustomValue": true,
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Sender",
+          "multi": true,
+          "name": "sender",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "${ds_prometheus}"
+            },
+            "group": "",
+            "kind": "DataQuery",
+            "spec": {
+              "query": "label_values(rfc6035_2otel_reports_total{service_instance_id=~\"$site\"}, rfc6035_sender_name)",
+              "refId": "sender"
+            },
+            "version": "v0"
+          },
+          "refresh": "onTimeRangeChanged",
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": "alphabeticalAsc"
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "allowCustomValue": false,
+          "current": {
+            "text": "",
+            "value": ""
+          },
+          "hide": "hideVariable",
+          "includeAll": false,
+          "label": "has_one_way_delay",
+          "multi": false,
+          "name": "has_one_way_delay",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "${ds_prometheus}"
+            },
+            "group": "",
+            "kind": "DataQuery",
+            "spec": {
+              "query": "label_values(rfc6035_call_one_way_delay_seconds_count{service_instance_id=~\"$site\",rfc6035_sender_name=~\"$sender\"}, __name__)",
+              "refId": "has_one_way_delay"
+            },
+            "version": "v0"
+          },
+          "refresh": "onTimeRangeChanged",
+          "regex": "",
+          "skipUrlSync": true,
+          "sort": "disabled"
+        }
+      }
+    ]
+  }
 }

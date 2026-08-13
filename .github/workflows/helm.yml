@@ -15,6 +15,7 @@ env:
   CHART_DIR: charts/rfc6035-2otel
 jobs:
   lint-template:
+    name: lint and render chart
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -27,6 +28,7 @@ jobs:
           make helm-docs
           git diff --exit-code "$CHART_DIR/README.md"
   helm-success:
+    name: Helm gate
     runs-on: ubuntu-latest
     if: always()
     needs: [lint-template]

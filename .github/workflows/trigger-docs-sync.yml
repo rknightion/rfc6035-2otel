@@ -6,17 +6,19 @@ on:
       - 'docs/**'
       - 'docs.toml'
   workflow_dispatch:
+permissions: {}
 concurrency:
   group: docs-sync-${{ github.repository }}
   cancel-in-progress: true
 jobs:
   trigger-sync:
+    name: trigger documentation sync
     timeout-minutes: 5
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     permissions:
       contents: read
-      id-token: write
+      id-token: write # exchanged for the scoped docs-sync token
     steps:
       - id: bao
         uses: rknightion/.github/.github/actions/broker-token@1cd0af4cdb0f46266b34f3b981543e32e7c98b4a
