@@ -62,7 +62,7 @@ grep -rniE '10\.0\.[0-9]|100\.(6[4-9]|[7-9][0-9])\.|grafana\.[a-z0-9-]+\.(com|ne
 
 **Never use `--notes` or `--plan` bare.** They *silently replace* the whole section — another
 session's writes vanish with no warning at exit 0. Use `--append-notes` and `--append-plan`. This is
-an open upstream bug, not a misunderstanding, and `.claude/hooks/backlog-guard.py` denies the bare
+an open upstream bug, not a misunderstanding, and a global `PreToolUse` hook in the agent config denies the bare
 form rather than trusting anyone to remember.
 
 **Never hand-edit task, draft, doc, decision or milestone markdown.** Section boundaries are
