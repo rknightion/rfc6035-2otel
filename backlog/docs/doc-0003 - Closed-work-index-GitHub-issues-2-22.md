@@ -3,7 +3,7 @@ id: doc-0003
 title: 'Closed work index (GitHub issues #2-#22)'
 type: other
 created_date: '2026-08-14 16:33'
-updated_date: '2026-08-14 16:33'
+updated_date: '2026-08-14 16:59'
 ---
 Every GitHub issue closed before the tracker migration on 2026-08-14 — Waves 1 through 3 and the
 release-repair issues between them. **17 closed issues, verified with `gh issue list --state closed
@@ -12,14 +12,25 @@ release-repair issues between them. **17 closed issues, verified with `gh issue 
 These are **not** re-imported as backlog tasks, deliberately. Backlog IDs follow creation order, so a
 `VQR-00NN` could never be made to match the `#NN` already cited in commit messages, wave reports and
 issue cross-references — importing them would create a second ID space over the same history, and 17
-`Done` rows would compete with the board's only real signal, which is what is left. The issues remain
-open-to-read on GitHub; the bodies live at `gh issue view <N>`, and the full narrative — including
-every non-green CI run and its disposition — is in the gitignored `codex/report-20260812-wave1.md`
-and `codex/report-20260812-wave2.md`.
+`Done` rows would compete with the board's only real signal, which is what is left.
 
-Numbers absent from this table (#1, #14, #19, #23) are pull requests, not issues. #16 is Renovate's
-Dependency Dashboard: bot-owned, recreated on every run, never a task. #20 is open and was imported as
-**VQR-0001**.
+**The issues themselves were deleted from GitHub on 2026-08-14.** `gh issue view <N>` no longer
+resolves and the `#NN` URLs 404. The bodies and all 26 comments live in `archive/issues.json`,
+committed and pushed before the deletion, with lab identifiers replaced by stable placeholders —
+`archive/README.md` carries the mapping and the verification:
+
+```bash
+jq -r '.[] | select(.number==11) | .title, "", .body' archive/issues.json
+```
+
+The full narrative — including every non-green CI run and its disposition — is in the gitignored
+`codex/report-20260812-wave1.md` and `codex/report-20260812-wave2.md`.
+
+Numbers absent from this table (#1, #14, #19, #23) are pull requests, not issues and not archived
+here. #16 was Renovate's Dependency Dashboard, bot-owned and never a task; it was deleted with the
+rest and Renovate will recreate it at a new number on its next run. #20 was the only open issue and
+is now **VQR-0001** on the board — it was deleted too, so the task is the live record and the archive
+is the original.
 
 Resulting SHAs are given where they are derivable. Commit messages in this repo do **not** cite issue
 numbers, so the mapping below is by content — file-addition history and the wave reports — not by an

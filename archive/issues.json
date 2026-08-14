@@ -1,0 +1,802 @@
+[
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\n\nDetermine whether binary RTCP XR (RFC 3611) support belongs in `rfc6035-2otel`, a sibling receiver, or neither, using real/testable implementations and a concrete transport/security design. This issue is research and design only; it does not authorize quietly adding a second network protocol to the released RFC 6035 collector.\n\n## Questions answered\n\n- Maintained real implementations: PJSIP/PJMEDIA and Jitsi/libjitsi; Pion RTCP is the preferred Go decoder and fixture generator; Wireshark is the independent wire oracle.\n- Real capture: PJSIP's upstream two-UA XR test produces a peer exchange and is the first bounded capture source.\n- Transport: passive PCAP/AF_PACKET on TAP/SPAN, initially offline; no generic direct listener and no production listener change.\n- Identity: only a configured bounded capture-sensor/source registry becomes a metric dimension; SSRC, tuple and correlation detail remain in logs.\n- Signals: normalize under a distinct `rtcp.xr.*` contract; do not mix protocol populations or invent RFC 6035 side/one-way semantics.\n- Repository boundary: a sibling `rtcp-xr-2otel`, because media-plane negotiation, capture privilege, binary parsing and SRTCP materially change the threat and lifecycle boundary.\n- Validation: PJSIP real capture plus Pion boundary/sentinel fixture, cross-checked in Wireshark, then fuzzed offline before any privileged capture helper.\n\n## Decision\n\nBuild a sibling receiver after the bounded PoC. Do not integrate binary RTCP-XR into `rfc6035-2otel`.\n\n## Acceptance\n\n- [x] Current upstream documentation/source identifies at least two usable RFC 3611 implementations or one implementation plus a standards-grade packet generator.\n- [x] A recommended architecture names repository boundary, UDP/RTCP ownership, identity model and signal mapping.\n- [x] Security and cardinality risks are explicit.\n- [x] A bounded proof-of-concept test plan identifies how to capture and validate a real emitted packet without changing production deployment.\n- [x] The issue closes with one decision: integrate here, build a sibling receiver, or defer with precise missing evidence.\n",
+    "closedAt": "2026-08-13T12:41:07Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Research decision: **build a sibling `rtcp-xr-2otel`; do not add binary RTCP-XR to this SIP/PUBLISH collector.**\n\nCurrent implementation evidence:\n\n- PJSIP/PJMEDIA commit `5b0894b8a72a67e4931f5da20aacc7fcabc6ba21` has the real BT=7 VoIP Metrics block builder and an upstream two-UA XR exchange test (`tests/pjsua/scripts-call/415_call_rtcp_xr.py`).\n- Pion RTCP v1.2.17/current commit `e6362230ba763b2807a1a99e620f0a2fd05dda71` provides typed BT=7 marshal/unmarshal and a round-trip fixture generator suitable for the Go decoder.\n- Jitsi/libjitsi commit `6c95bf2236610e0d2c47109a73501b2078963f9f` independently serializes and inserts XR into outgoing RTCP.\n- Wireshark commit `27a642453b370e9e14c566bdf269b4872d966e2f` independently validates PT=207, BT=7, block length=8.\n\nTransport and security boundary:\n\n- RFC 6035 here is signaling-plane SIP PUBLISH over one configured UDP listener. RFC 3611 is media-plane binary RTCP, normally sent to the media peer and often protected by SRTCP.\n- A generic direct UDP listener would not receive negotiated peer RTCP without owning SDP/ICE/NAT/port lifecycle. `rtcp-mux` changes demultiplexing, not session ownership.\n- The sibling should start as an offline PCAP decoder, then use a narrowly privileged capture helper on TAP/SPAN/AF_PACKET with an unprivileged decoder. The PoC must not accept SRTCP keys or change production listeners.\n- Metrics use only a configured bounded capture-sensor/source registry. SSRCs, five-tuples, capture interface and correlation details stay in logs. SIP Call-ID correlation is a separate TTL-bounded mapping problem and not PoC scope.\n- Raw fixed-point and sentinel semantics remain under a distinct `rtcp.xr.*` contract; they must not be mixed into `rfc6035.call.*` or invent `report.side`/one-way-delay equivalence.\n\nBounded proof:\n\n1. Build PJSIP with `PJMEDIA_HAS_RTCP_XR=1`, run the upstream two-UA `--rtcp-xr` test, and capture only the isolated test interface.\n2. Prove PT=207, BT=7, length=8 in Wireshark/tshark and compare with PJSIP call-quality output.\n3. Generate a separate Pion v1.2.17 boundary/sentinel fixture programmatically.\n4. Decode both fixtures in a new sibling offline-PCAP prototype and compare its normalized output with Pion/Wireshark.\n5. Fuzz RTCP and PCAP framing, truncation, declared lengths, padding, compound packets, sentinel/range handling and mux ambiguity before considering privileged capture.\n\nLinphone remains the separate practical non-Poly RFC 6035 compatibility sender; generic RTCP-XR support in PJSIP/Jitsi is not evidence that either emits RFC 6035 SIP PUBLISH.\n",
+        "createdAt": "2026-08-13T11:31:18Z",
+        "id": "IC_kwDOT2fj0c8AAAABOrPjgg",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/22#issuecomment-5279835010",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-13T11:16:41Z",
+    "labels": [],
+    "milestone": null,
+    "number": 22,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Design: assess binary RFC 3611 RTCP-XR receiver support",
+    "updatedAt": "2026-08-13T12:41:07Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/22"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Mission\n\nTurn the existing generated RFC 6035 signal inventory into one operational Grafana Dashboard v2 resource on the m7kni stack, publish and reconcile it through the established `gc-gitsync-m7kni` GitSync path, publish the generated alert rules, and apply proportionate GitHub Actions hardening found by a full zizmor auditor-persona review.\n\nThis is a single-dashboard delivery. Dashboard identity remains `rfc6035-2otel`; the GitSync destination is `networking/rfc6035-2otel.json`; the live folder is the existing GitSync-managed `networking` folder.\n\n## Binding design\n\n### Dashboard v2 and dynamic layout\n\n- Emit `apiVersion: dashboard.grafana.app/v2`, `kind: Dashboard`, `metadata.name: rfc6035-2otel`.\n- Use Dashboard v2 `elements` plus a top-level `TabsLayout`.\n- Tabs: **Operations**, **Call quality**, **Raw reports**, **Diagnostics**, **Collector**.\n- Use conditional rendering for optional/event-driven signals. One-way delay is visible only when its series exists; its absence remains normal.\n- Preserve a single generated source of truth; do not hand-edit the generated JSON in GitSync.\n\n### Variables and data sources\n\n- Datasource variables default to `grafanacloud-prom` and `grafanacloud-logs`.\n- `site` is `service_instance_id`, multi/all, sourced from released collector report metrics.\n- `sender` is `rfc6035_sender_name`, multi/all, filtered by selected site.\n- All metric and log queries scope to site/sender where applicable.\n\n### Sparse-event query contract\n\nRFC 6035 histograms receive one observation per completed call, not continuous samples. Every quality query must be guarded by a positive count/report increase in the selected window so an empty interval cannot render as catastrophic zero quality. Use `$__range` for selected-window operational summaries; use an event-presence guard with any trend window.\n\n### Operational story\n\n- Operations: reports in range, reporting handsets, mean/p95 MOS, p95 loss, p95 RTT/jitter, unknown sender reports, export failures.\n- Call quality: per-site/per-handset quality trends and breakdowns with correct units and decision-oriented legends.\n- Raw reports: a Loki panel using the verified `rfc6035.report.received` metadata filters.\n- Metric data links open the Raw reports tab using `dtab=Raw-Reports`, preserving `${__url_time_range}` and applying clicked site/sender values.\n- Diagnostics: R-factor, discard rate, dialect/side/jitter detail, optional one-way delay.\n- Collector: expose all nine bounded self-observability instruments, while treating event-only absent series as no events rather than broken collection.\n\n### Publication and reconciliation\n\n- Add `grafana-sync.yml` following the existing 2otel pattern.\n- Dashboard path: commit generated v2 JSON to `rknightion/gc-gitsync-m7kni` at `networking/rfc6035-2otel.json` with an explicit pathspec, then verify Grafana applied the exact GitSync commit.\n- Use the provisioned broker contract `permission-set: gitsync`, `role: gitsync-rfc6035-2otel`; never fall back to `GITHUB_TOKEN`.\n- Publish alert resources with `gcx resources push`, prune only the RFC 6035 rule folder before push, then read back the resources.\n- Pin every action to a full SHA and verify the installed gcx archive checksum.\n- Preserve current shared publication behavior: docs/test-only main pushes may publish edge/main images; no path-filter change.\n\n### Alerts and recording rules\n\n- Convert generated rules to App Platform `AlertRule` resources and link them to dashboard/panels.\n- Keep high packet loss and export failure rules, add unknown-sender reporting, and validate expressions against live data without manufacturing a firing incident.\n- Alerts remain absence-safe and low-volume-aware.\n- Recording rules were assessed and rejected for now: current data is tiny/low-cardinality and important aggregations depend on the selected dashboard time range. Fixed-window recorded series would add semantic/storage cost without useful acceleration.\n\n### Actions hardening\n\n- Add top-level `permissions: {}` to docs sync.\n- Add clear job names and explanatory permission comments where useful.\n- Add safe same-ref concurrency to Docker Security, Scorecard and zizmor; do not cancel publication workflows mid-write.\n- Upgrade the zizmor tool input to 1.29.0 and apply the pending distroless digest update.\n- Keep the four `secrets-outside-env` findings as an explicit accepted advisory: the two values are broker identifiers, not bearer tokens, and a real fix requires a shared GitHub Environments policy and secret migration.\n- Do not make low-value cosmetic auditor findings release-blocking.\n\n## External prerequisites to prove before implementation closes\n\n- `TS_WIF_CLIENT_ID` and `TS_WIF_AUDIENCE` exist (already observed).\n- The repository-specific OpenBao role `gitsync-rfc6035-2otel` exists and can mint a token; do not assume it from sibling state.\n- `GRAFANA_SERVER`, `GRAFANA_STACK_ID`, and `GRAFANA_TOKEN` are available for CI rule publication, or document the exact provisioning boundary if absent.\n- The alert folder exists and the GitHub-push service account has Admin on that folder before pushing rules.\n\n## Acceptance\n\n- [x] Generator emits one valid Dashboard v2 manifest with the five approved tabs and stable identity.\n- [x] Prometheus/Loki datasource, site and sender variables default and resolve correctly on m7kni.\n- [x] Quality queries return live named-handset results and no false zero during empty windows.\n- [x] Raw report panel returns live rows; metric drilldowns preserve time/site/sender and open the Raw reports tab.\n- [x] Diagnostics conditionally handles one-way-delay absence.\n- [x] Collector tab covers all nine bounded self-observability instruments.\n- [x] Generated dashboard and rule drift tests pass; missing fixtures/resources fail rather than skip.\n- [ ] Dashboard GitSync action pushes/reconciles the explicit destination and proves Grafana applied it.\n- [x] Alert resources validate, publish, read back, and remain absence-safe.\n- [ ] A full dashboard snapshot is visually inspected and at least one real iteration is made if it reveals a defect.\n- [x] Zizmor regular audit passes; the auditor-persona result is dispositioned with no hidden findings.\n- [x] Local `make check` and exact-head CI/security workflows pass.\n- [x] Durable issue comments name all external side effects and any external prerequisite not provisioned.\n\n## Non-goals\n\n- No second dashboard.\n- No Helm-provider test.\n- No Grafana recording rules unless measured query cost disproves the current decision.\n- No RFC 3611 binary receiver in this issue; that is a separate protocol-boundary design because it changes transport, threat model and parser surface.\n\n",
+    "closedAt": "2026-08-13T17:23:37Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Design approved and implementation started.\n\nThe two read-only design reviews confirmed the one-dashboard approach and tightened the implementation contract:\n\n- source generator and generated artifact are authoritative; Grafana UI edits are not a reverse-sync path;\n- both `metadata.name` and `networking/rfc6035-2otel.json` are stable identity;\n- the tab title is `Raw Reports`, matching `dtab=Raw-Reports`;\n- one-way delay uses a selection-aware hidden variable and row-level conditional rendering;\n- exact report/handset summaries use Loki, with event and sender as pipeline filters;\n- every Prometheus/Loki query is wired through its datasource variable;\n- quality links retain site/sender labels and have a selection-based fallback;\n- alerts use stable numeric panel IDs, App Platform resources, a dedicated runtime-resolved folder, scoped prune, and semantic read-back;\n- GitSync verification compares the live source path, manager, folder, and pushed Git blob SHA;\n- recording rules remain intentionally absent because current volume/cardinality are tiny and selected-range calculations cannot be replaced faithfully by fixed windows.\n\nCurrent live prerequisites: m7kni is online on Grafana 13.2.0-31629364673; `grafanacloud-prom`, `grafanacloud-logs`, and the GitSync-managed `networking` folder are confirmed. The dedicated alert folder and CI Grafana variables/secret remain to be proven during the publication lane.\n\nImplementation is following the ignored local plan `docs/superpowers/plans/2026-08-13-operational-dashboard-v2.md`; this issue remains the durable record.\n",
+        "createdAt": "2026-08-13T11:31:18Z",
+        "id": "IC_kwDOT2fj0c8AAAABOrPjfg",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/21#issuecomment-5279835006",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "External prerequisite checkpoint (live read-back, 2026-08-13):\n\n- Created Grafana folder UID/title `rfc6035-2otel` on m7kni.\n- Granted the existing service account `sa-1-github-repo-pushes` (ID 40, org role Viewer) explicit Admin permission on that folder; permission read-back is `permissionName=Admin`.\n- Created service-account token `rfc6035-2otel-ci` (token ID 1629) and stored its value directly as repository secret `GRAFANA_TOKEN`; the value was not printed or retained in a file.\n- Added repository variables `GRAFANA_SERVER=https://GRAFANA-STACK-HOST` and `GRAFANA_STACK_ID=GRAFANA-STACK-ID`.\n- Existing identifier secrets `TS_WIF_CLIENT_ID` and `TS_WIF_AUDIENCE` remain present and unchanged.\n\nThe remaining external prerequisite is an end-to-end mint of OpenBao role `gitsync-rfc6035-2otel`. OpenBao will not be inspected or mutated; the new workflow run is the acceptance check, and there will be no `GITHUB_TOKEN` fallback.\n",
+        "createdAt": "2026-08-13T11:34:27Z",
+        "id": "IC_kwDOT2fj0c8AAAABOrRSNw",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/21#issuecomment-5279863351",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Live publication checkpoint for `951cc2dd6f2afbe8b53481a69372315e1129f978`:\n\n- `grafana-sync` failed in both jobs: https://github.com/rknightion/rfc6035-2otel/actions/runs/31701208147\n- Dashboard job reached OpenBao through Tailscale, then `auth/gha/login` returned HTTP 400: role `gitsync-rfc6035-2otel` could not be found. The workflow failed closed; no `GITHUB_TOKEN` fallback was used and no GitSync write occurred. This is the previously unproven external prerequisite.\n- Rules job resolved live folder `rfc6035-2otel`, staged all three resources, and passed prune dry-run/client validation. Push then rejected `expected-rules.txt` because the inventory was incorrectly placed inside the manifest directory. No rule resources were published.\n- Docs broker mint and dispatch succeeded independently: https://github.com/rknightion/rfc6035-2otel/actions/runs/31701208097\n\nIssue reopened. The local rules staging defect is being fixed and will be rerun. GitSync remains blocked on provisioning the named OpenBao role; the repository workflow will not substitute another credential.",
+        "createdAt": "2026-08-13T12:42:39Z",
+        "id": "IC_kwDOT2fj0c8AAAABOr7P6Q",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/21#issuecomment-5280550889",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Implementation and live-verification checkpoint through `23731cbdb37d49e0b5023eebc7c33dde35b67102`.\n\nDelivered commits on `main`:\n\n- `951cc2d`: Dashboard v2, three alerts, docs, GitSync/reconciliation tooling, and Actions hardening.\n- `ccd0d60`: rule inventory moved outside the manifest directory.\n- `fae5290`: semantic rule read-back normalized for Grafana defaults.\n- `66935b3`: privileged manual dispatches guarded to `refs/heads/main`.\n- `23731cb`: release/docs broker action aligned to hardened role-aware revision `06d6727487515cd6628e01696af6f886f1421e04`.\n\nExact-head validation for `23731cb` is green: CI `31703192648`, CodeQL `31703193330`, Docker Security `31703192670`, Release/edge publication `31703193688`, Scorecard `31703192677`, actionlint `31703193205`, and Zizmor `31703192778`. Local `make check`, actionlint, and regular Zizmor passed. Auditor-persona Zizmor found eight medium `secrets-outside-env` advisories and no high findings; these remain explicitly accepted because the real control is protected GitHub Environments plus secret migration, not a cosmetic unprotected `environment:` declaration.\n\nThe exact-head release workflow published `ghcr.io/rknightion/rfc6035-2otel:main` and `:main-23731cb`. Live registry read-back gives index digest `sha256:69a247ab2e134ac2da8e91dbbb7f236a6cacfdb77891064e9a7bcc55b3b7bcef`; signing, provenance, SBOM, and Trivy completed in the workflow. Release PR #23 remains open and is intentionally not merged here.\n\nLive Grafana alert read-back after the latest workflow run shows all three repository-owned rules present in folder UID `rfc6035-2otel`, unpaused, `health=ok`, `state=inactive`, and evaluating as `Normal (NoData)`:\n\n- `rfc6035-2otel-export-failures`\n- `rfc6035-2otel-high-packet-loss`\n- `rfc6035-2otel-unknown-sender-reports`\n\nThe one-way-delay empty state is correct. RFC 6035 distinguishes ESD, SOWD, and OWD; the public `rfc6035.call.one_way_delay` instrument is sourced only from SOWD. Both real Poly captures and current raw reports contain ESD but no SOWD. ESD remains losslessly available in parsed fields/raw logs and must not be aliased into the one-way-delay metric. Live raw values included ESD 83 and 292; `rfc6035_call_one_way_delay_seconds_count{service_version=\"0.1.1\"}` correctly returned no rows.\n\nAll dashboard publication failures are recorded below; every dashboard lane reached OpenBao over Tailscale and failed closed at `auth/gha/login` because role `gitsync-rfc6035-2otel` does not exist. None used `GITHUB_TOKEN`, minted a GitSync token, committed to `rknightion/gc-gitsync-m7kni`, or published a dashboard:\n\n1. `31701208147` — first publication attempt; dashboard mint failed. The rules lane separately found and exposed the local inventory-in-manifest defect, so no rules were published in this run.\n2. `31701429211` — dashboard mint failed after the local inventory placement fix.\n3. `31701837863` — dashboard mint failed after Grafana semantic read-back normalization.\n4. `31702834920` — dashboard mint failed after manual-dispatch guarding; the rules lane completed prune, validation, push, and semantic read-back.\n5. `31703692704` — explicit retry from `main` at `23731cb`; Tailscale connected, OpenBao was resolved at `IP-TAILNET-HOST-A`, and `auth/gha/login` returned HTTP 400 with `role \"gitsync-rfc6035-2otel\" could not be found`. The rules lane again passed fully.\n\nLive GitSync state is unchanged: manager `repository-e660907` is healthy and targets `rknightion/gc-gitsync-m7kni`; `status.sync.lastRef` is `d30ff203ec1715c9eae9091d23190f8b0f7c331d`; the managed `networking` folder is `networking-z3xipph6-tts9ve7mpijcwuhcfnuj`; dashboard `rfc6035-2otel` is still 404. The intended local dashboard Git blob is `1a22467d6295a6921a649d722a784dac3468a061`, SHA-256 `bd90ece166a24e7407b77a7d0f98217f298d5dc37413a28af22590293ce82867`.\n\nExternal side effects now present from this issue are: five implementation commits on `main`; one GHCR multi-platform edge/main image index; one Grafana alert folder, one explicit service-account Admin grant, one Grafana service-account token stored as a repository secret, two Grafana repository variables, and three live alert rules. There are zero GitSync repository commits and zero live dashboard resources from this issue. The tracker body has been reconciled: only GitSync publication/reconciliation and the required visual snapshot remain unchecked.\n\nPrecise resume boundary: an external OpenBao owner must provision JWT role `gitsync-rfc6035-2otel` for permission set `gitsync`. Then dispatch `.github/workflows/grafana-sync.yml` on `main`, verify the GitSync path/source checksum/manager/folder/`lastRef`, snapshot `rfc6035-2otel` with `site=HOST-A` and `sender=PHONE-A|PHONE-B`, inspect the PNG, iterate if needed, tick the final two acceptance items, and close this issue manually. Do not merge release PR #23 as part of that continuation.\n",
+        "createdAt": "2026-08-13T13:13:47Z",
+        "id": "IC_kwDOT2fj0c8AAAABOsQqxw",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/21#issuecomment-5280901831",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-13T11:16:40Z",
+    "labels": [],
+    "milestone": null,
+    "number": 21,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Wave 3: operational Dashboard v2 and Grafana reconciliation",
+    "updatedAt": "2026-08-13T17:23:37Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/21"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## What\n\nUse **AAISP's special dialling codes** as an on-demand generator of real voice-quality reports, to\nreplace and extend fixtures that are currently synthetic.\n\n## Why\n\n`vq-collector`'s README carries this caveat, and it has carried over to this project: **the test\nsamples are built from the RFC 6035 / RFC 3611 examples, not from a wire capture.** A parser validated\nonly against the spec's own examples is validated against the spec, not against what Poly actually\nemits.\n\nAAISP publishes special codes that terminate on their platform, so a call can be placed and held for a\nknown duration, with known audio, at zero cost and without involving another person. That turns\n\"wait for a real call to happen\" into a repeatable test.\n\n## The codes\n\n| Code | Effect | Use here |\n|---|---|---|\n| `*103` | Play hold music | **Best sample generator** — long, continuous, known audio. Hold for a defined duration to get a full `VQSessionReport` with realistic jitter/loss/MOS |\n| `*100` | 1 kHz tone test | Constant-bitrate reference; the cleanest possible signal, useful as a control |\n| `*105` | Read the time | Short call — exercises short-duration reports |\n| `*400`–`*699` | **Return a specific SIP error code** | Failure-path coverage: what does the handset publish, if anything, when a call fails at a defined point? |\n| `*104` / `17070` | Read back calling number | Trivial short call |\n\n`*400`–`*699` is the interesting one beyond sample generation: it makes SIP failure modes reproducible\non demand, so the collector's behaviour on reports from failed and very short calls can be tested\ndeliberately rather than waiting for one to occur naturally.\n\n## Scope\n\n- A documented procedure (not necessarily automated) for generating reports on demand: which code,\n  how long to hold, what to expect.\n- Diff a captured real report against the existing synthetic fixtures and **record the differences**.\n  Any divergence is a parser bug or a fixture bug; both matter.\n- Extend fixtures with real captures, keeping the synthetic ones as spec-conformance cases. Label\n  which is which — this distinction is the entire point.\n- Cover the short-call and failed-call cases surfaced by `*400`–`*699`.\n\n## ✅ Dialect coverage is FINE — an earlier version of this issue said otherwise and was WRONG\n\nThis issue originally claimed `PHONE-B` had never delivered a report and blamed a shadowed firewall\nrule. **Both halves were wrong.** Corrected 2026-08-13, kept here so nobody re-derives it:\n\n- **Both dialects are arriving and parsing correctly.** From the live collector log:\n  `source=IP-PHONE-A:5060 dialect=standard` and `source=IP-PHONE-B:5060 dialect=prestandard`,\n  repeatedly, on 2026-08-13. The deliberate split across the two handsets is working exactly as\n  intended.\n- **The wrong-evidence trap:** the \"zero reports from PHONE-B\" finding came from querying\n  `{service_name=\"syslog\"} | appname=\"vqcollector\"` in Loki. That is the **retired** `vq-collector`'s\n  syslog stream. `rfc6035-2otel` replaced it and exports OTLP directly, so it writes nothing there —\n  an empty result was inevitable and meant nothing. **Check `docker logs rfc6035-2otel` or the OTLP\n  data, never the old collector's stream.**\n- **The firewall was never blocking it.** The rule `[IOT] Allow -> vq-collector (HOST-A:5060)` was\n  genuinely mis-sequenced (seq 1201, below the seq-336 catch-all block, same `prio_group`), so it was\n  passing nothing — but the traffic was already permitted by the multi-interface\n  `Allow -> syslog (HOST-A:514)` rule at `prio_group` 200000, whose `syslog_ports` alias contains\n  **514 and 5060**. Shadowed, but with no consequence.\n\nSo this issue is about **fixture quality**, not about unblocking a dead path. The real gap stands:\nthe pre-standard grammar was built from measurement rather than a specification, and both dialects'\nfixtures should be checked against captures generated deliberately rather than opportunistically.\n\n## Acceptance criteria\n\n- [ ] `PHONE-B`'s reports confirmed arriving (firewall rule corrected to sequence below 336)\n- [ ] At least one real report captured per dialect via `*103`\n- [ ] Real captures diffed against the synthetic fixtures, differences documented\n- [ ] Fixtures extended with real captures, clearly labelled real vs synthetic\n- [ ] Short-call and failed-call behaviour covered using `*105` and `*400`–`*699`\n- [ ] Procedure written up in `docs/` so it can be repeated\n\n",
+    "closedAt": null,
+    "comments": [],
+    "createdAt": "2026-08-13T10:42:33Z",
+    "labels": [],
+    "milestone": null,
+    "number": 20,
+    "state": "OPEN",
+    "stateReason": "",
+    "title": "Use AAISP special codes (*103, *100, *400-*699) to generate real VQ reports and replace synthetic fixtures",
+    "updatedAt": "2026-08-13T11:14:12Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/20"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Defect\n\nThe released v0.1.0 instrument `rfc6035_2otel.build_info` is an observable gauge with explicit OpenTelemetry unit `1`. Grafana Cloud Prometheus compatibility translates that unit on a gauge to the live series `rfc6035_2otel_build_info_ratio`.\n\nThe frozen Wave 2 contract and generated consumers require the exact Prometheus name `rfc6035_2otel_build_info`. This is live gate evidence, not a catalog prediction.\n\n## Narrow repair\n\n- create the build-info observable gauge without an explicit SDK unit, matching the sibling implementation\n- retain gauge value 1 and the four frozen build attributes\n- retain the catalog description of the value as dimensionless\n- add a focused regression assertion for the emitted SDK metadata\n- regenerate only if the catalog-driven artifacts change\n\n## Acceptance\n\n- focused self-observability tests pass\n- `make check` passes\n- exact-head CI passes\n- a patch release is published by CI and deployed to HOST-A by digest\n- live query filtered on the patch `service_version` returns `rfc6035_2otel_build_info` and no `rfc6035_2otel_build_info_ratio`\n\nPhase 2 remains gated until the corrected released build passes every item in Wave 2 section 5.2.",
+    "closedAt": "2026-08-12T20:44:59Z",
+    "comments": [],
+    "createdAt": "2026-08-12T20:44:12Z",
+    "labels": [],
+    "milestone": null,
+    "number": 18,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "fix: preserve the frozen build-info Prometheus series name",
+    "updatedAt": "2026-08-12T20:44:59Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/18"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\n\nRemove the SIP observer integration test race exposed by release-PR CI without changing runtime behavior.\n\n## Evidence\n\nCI run 31636885860 at release PR head bd0168b45d8db8f55de9d6eec628d53934b8565a failed TestListenerSurvivesHostileDatagramsAndDeduplicates. The handler count reached one before the concurrent duplicate datagram goroutine recorded its observer events: duplicate:test-phone was 0, response:200 was 1, while accepted was already 2.\n\n## Scope\n\ninternal/sip/listener_test.go only. Wait for the asynchronous observer state with a bounded deadline. Do not serialize or alter the production UDP listener.\n\n## Acceptance\n\n- [ ] The focused SIP test passes repeatedly and under -race.\n- [ ] Integrated make check passes.\n- [ ] Exact-head CI and release-PR CI pass.",
+    "closedAt": "2026-08-12T20:21:21Z",
+    "comments": [],
+    "createdAt": "2026-08-12T20:20:11Z",
+    "labels": [],
+    "milestone": null,
+    "number": 17,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "test: synchronize SIP observer assertions",
+    "updatedAt": "2026-08-12T20:21:21Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/17"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "is_bot": true,
+      "login": "app/rknightion-renovate"
+    },
+    "body": "This issue lists Renovate updates and detected dependencies. Read the [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) docs to learn more.\n\n## Open\n\nThe following updates have all been created. To force a retry/rebase of any, click on a checkbox below.\n\n - [ ] <!-- rebase-branch=renovate/github-codeql-action-4.x -->[chore(deps): update github/codeql-action action to v4.37.7](../pull/24)\n - [ ] <!-- rebase-branch=renovate/golang-1.x -->[chore(deps): update golang docker tag to v1.26.6](../pull/25)\n - [ ] <!-- rebase-all-open-prs -->**Click on this checkbox to rebase all open PRs at once**\n\n## Detected Dependencies\n\n<details><summary>docker-compose (1)</summary>\n<blockquote>\n\n<details><summary>deploy/docker-compose.yml</summary>\n\n\n</details>\n\n</blockquote>\n</details>\n\n<details><summary>dockerfile (1)</summary>\n<blockquote>\n\n<details><summary>Dockerfile (3)</summary>\n\n - `docker/dockerfile 1`\n - `golang 1.26.5-bookworm@sha256:53eeac89074db483fdf0ab3be1df32bf6e47562263d2d0d6baa7f26acb4957dd` → [Updates: `1.26.6-bookworm`]\n - `gcr.io/distroless/static-debian12 nonroot@sha256:1b7b9f0f0e0a1d2155f531db587cc48ec26aaf97ab64364225f5bf18a054e66a`\n\n</details>\n\n</blockquote>\n</details>\n\n<details><summary>github-actions (13)</summary>\n<blockquote>\n\n<details><summary>.github/workflows/actionlint.yml</summary>\n\n\n</details>\n\n<details><summary>.github/workflows/ci.yml (16)</summary>\n\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `actions/setup-go v7.0.0@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `actions/setup-go v7.0.0@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e`\n - `golangci/golangci-lint-action v9@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `actions/setup-go v7.0.0@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `actions/setup-go v7.0.0@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `actions/setup-go v7.0.0@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e`\n - `goreleaser/goreleaser-action v7@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `docker/setup-buildx-action v4.2.0@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c`\n - `docker/build-push-action v7.3.0@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a`\n - `golangci/golangci-lint v2.12.2`\n\n</details>\n\n<details><summary>.github/workflows/codeql.yml</summary>\n\n\n</details>\n\n<details><summary>.github/workflows/dependency-review.yml</summary>\n\n\n</details>\n\n<details><summary>.github/workflows/docker-security.yml (10)</summary>\n\n - `step-security/harden-runner v2.20.1@b09bb98e06d4d774595224525879c09bc6e98c40`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `hadolint/hadolint-action v3.4.0@2a66e89f53d0771bb131a7fa31f3136336094aa6`\n - `actions/upload-artifact v7.0.1@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`\n - `github/codeql-action v4.37.6@5595ccaf912efad79be6eef63a5619ff05969be3` → [Updates: `v4.37.7`]\n - `step-security/harden-runner v2.20.1@b09bb98e06d4d774595224525879c09bc6e98c40`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `aquasecurity/trivy-action v0.36.0@ed142fd0673e97e23eac54620cfb913e5ce36c25`\n - `actions/upload-artifact v7.0.1@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`\n - `github/codeql-action v4.37.6@5595ccaf912efad79be6eef63a5619ff05969be3` → [Updates: `v4.37.7`]\n\n</details>\n\n<details><summary>.github/workflows/grafana-sync.yml (3)</summary>\n\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n\n</details>\n\n<details><summary>.github/workflows/helm.yml (2)</summary>\n\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `azure/setup-helm v5.0.1@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310`\n\n</details>\n\n<details><summary>.github/workflows/publish.yml (2)</summary>\n\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `ubuntu 24.04`\n\n</details>\n\n<details><summary>.github/workflows/release-assets.yml</summary>\n\n\n</details>\n\n<details><summary>.github/workflows/release-please.yml (1)</summary>\n\n - `googleapis/release-please-action v5@45996ed1f6d02564a971a2fa1b5860e934307cf7`\n\n</details>\n\n<details><summary>.github/workflows/scorecard.yml (5)</summary>\n\n - `step-security/harden-runner v2.20.1@b09bb98e06d4d774595224525879c09bc6e98c40`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `ossf/scorecard-action v2.4.4@2d1146689b8cda280b9bc96326124645441f03bc`\n - `actions/upload-artifact v7.0.1@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`\n - `github/codeql-action v4.37.6@5595ccaf912efad79be6eef63a5619ff05969be3` → [Updates: `v4.37.7`]\n\n</details>\n\n<details><summary>.github/workflows/trigger-docs-sync.yml (1)</summary>\n\n - `peter-evans/repository-dispatch v4@28959ce8df70de7be546dd1250a005dd32156697`\n\n</details>\n\n<details><summary>.github/workflows/zizmor.yml (4)</summary>\n\n - `step-security/harden-runner v2.20.1@b09bb98e06d4d774595224525879c09bc6e98c40`\n - `actions/checkout v7.0.1@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `zizmorcore/zizmor-action v0.6.2@3dc1ecc9bcb9e94e9b2c709687979e1298497054`\n - `ghcr.io/zizmorcore/zizmor v1.29.0`\n\n</details>\n\n</blockquote>\n</details>\n\n<details><summary>gomod (1)</summary>\n<blockquote>\n\n<details><summary>go.mod (12)</summary>\n\n - `go 1.26.5`\n - `go.opentelemetry.io/otel v1.45.0`\n - `go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.21.0`\n - `go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.21.0`\n - `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.45.0`\n - `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.45.0`\n - `go.opentelemetry.io/otel/log v0.21.0`\n - `go.opentelemetry.io/otel/metric v1.45.0`\n - `go.opentelemetry.io/otel/sdk v1.45.0`\n - `go.opentelemetry.io/otel/sdk/log v0.21.0`\n - `go.opentelemetry.io/otel/sdk/metric v1.45.0`\n - `gopkg.in/yaml.v3 v3.0.1`\n\n</details>\n\n</blockquote>\n</details>\n\n<details><summary>helm-values (1)</summary>\n<blockquote>\n\n<details><summary>charts/rfc6035-2otel/values.yaml</summary>\n\n\n</details>\n\n</blockquote>\n</details>\n\n",
+    "closedAt": null,
+    "comments": [],
+    "createdAt": "2026-08-12T20:10:37Z",
+    "labels": [],
+    "milestone": null,
+    "number": 16,
+    "state": "OPEN",
+    "stateReason": "",
+    "title": "Dependency Dashboard",
+    "updatedAt": "2026-08-14T08:40:30Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/16"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\n\nIntegrate the completed Wave 2 Phase 1 lanes on the root-owned seams, preserve all valid lane output, and fix the first-run CI findings before the release gate.\n\n## Current evidence\n\n- main and origin/main are identical at 973853cd37508c447cf77017a348c6a2f271da49.\n- P1-L5 and P1-L6 outputs are present but uncommitted.\n- First-run CI identified five Go lint findings already addressed in the integration tree.\n- Helm CI fails because its required make helm-docs target is absent.\n- Generated self-signal Prometheus translations currently append annotation units that Prometheus translation does not append.\n- The interrupted dashboard output lacks explicit call-quality and collector-health rows and erases useful closed-set health dimensions.\n\n## Scope\n\n- Root-owned runtime wiring in cmd/** and internal/sip/**.\n- The narrow lint suppression comments in internal/vqreport/parse.go.\n- Makefile and .gitignore integration targets.\n- Reconciliation of docs, signal catalog, Grafana generators/tests, generated dashboard/rules, and chart README.\n- No Phase 2 work, release merge, deployment, or live gate proof in this issue.\n\n## Acceptance\n\n- [x] All nine D5 self-signals have real runtime paths.\n- [x] D16 resource behavior preserves OTEL_RESOURCE_ATTRIBUTES, telemetry SDK and host identity, explicit service values, and service.instance.id.\n- [x] Parser failures use a truthful closed error.type.\n- [x] Self-signal Prometheus names match translation behavior consistently in catalog, docs, dashboard, and alerts.\n- [x] Dashboard has explicit call-quality and collector-health rows and preserves relevant closed dimensions.\n- [x] Alert no-data state is OK and quality remains gated on report arrival.\n- [x] Docs and catalog parity is asserted bidirectionally.\n- [x] Disposable N+1 measurement proves exactly emitter, catalog, regeneration.\n- [x] make helm-docs exists and chart README is generated.\n- [x] Grafana checks, Helm checks, focused Go checks, lint/security checks, and integrated make check pass.\n- [x] Completing commit closes #8, #9, and this issue.\n",
+    "closedAt": "2026-08-12T20:16:57Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed by fda5313. All nine self-signals have runtime paths; D16 resource merging, source port/raw body, truthful parser classification, corrected Prometheus translations, preserved dashboard dimensions, Helm appVersion fallback/docs generation, and first-run lint fixes are integrated. Final local evidence: make check green; golangci-lint 0 issues; actionlint clean; zizmor no findings; goreleaser check valid; govulncheck found no vulnerabilities; Helm lint/template and hardened local container smoke passed.",
+        "createdAt": "2026-08-12T20:17:11Z",
+        "id": "IC_kwDOT2fj0c8AAAABOkE-HA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/15#issuecomment-5272321564",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T20:04:52Z",
+    "labels": [],
+    "milestone": null,
+    "number": 15,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "GATE integration: reconcile Phase 1 and first-run CI",
+    "updatedAt": "2026-08-12T20:17:12Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/15"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nAfter the complete Phase 1 gate only, add FuzzParse seeded from both immutable real captures and RFC examples, run locally for at least 60 seconds, fix any crash/hang, and execute a short fuzz run in CI.\n\n## Ownership\ninternal/vqreport/** and .github/workflows/ci.yml only.\n\n## Dependencies\nEvery one of the seven gate items must pass first.\n\n## Exclusions\nNever overwrite testdata/real captures.\n\n## Acceptance\n- [ ] FuzzParse includes both real captures and RFC seeds; missing fixtures fail rather than skip.\n- [ ] Local fuzz run is clean for at least 60 seconds.\n- [ ] Any discovered crash/hang is fixed and regression-pinned.\n- [ ] ci.yml executes a short fuzz run.",
+    "closedAt": "2026-08-12T21:05:11Z",
+    "comments": [],
+    "createdAt": "2026-08-12T19:35:34Z",
+    "labels": [],
+    "milestone": null,
+    "number": 13,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P2-L10: Fuzz the parser from real and RFC seeds",
+    "updatedAt": "2026-08-12T21:05:11Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/13"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nAfter the complete Phase 1 gate only, dispatch trigger-docs-sync and prove the hub runs and the public page renders.\n\n## Ownership\nRoot live operations; no repository files.\n\n## Dependencies\nEvery one of the seven gate items must pass first.\n\n## Acceptance\n- [ ] Workflow dispatch succeeds.\n- [ ] A corresponding rknightion/m7kni-net-site run executes.\n- [ ] https://m7kni.io/rfc6035-2otel renders.\n- [ ] A 204 dispatch response alone is not treated as success.",
+    "closedAt": "2026-08-12T21:01:12Z",
+    "comments": [],
+    "createdAt": "2026-08-12T19:35:32Z",
+    "labels": [],
+    "milestone": null,
+    "number": 12,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P2-L9: Prove end-to-end docs hub publishing",
+    "updatedAt": "2026-08-12T21:01:12Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/12"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nAfter the complete Phase 1 gate only, prove at least three completed real calls per handset/dialect plus duplicate suppression and process stability.\n\n## Ownership\nRoot live operations; docs/troubleshooting.md notes only if needed.\n\n## Dependencies\nEvery one of the seven gate items must pass first.\n\n## Acceptance\n- [x] At least three standard reports from PHONE-A and three pre-standard reports from PHONE-B land.\n- [x] Replayed identical Call-ID+CSeq increments duplicates without exporting another report.\n- [x] RSS before/after and restart count are recorded; restart count remains 0.\n",
+    "closedAt": "2026-08-13T09:47:25Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "## Parked partial — precise resume boundary\n\nThe independently executable soak checks passed on released `service_version=\"0.1.1\"`:\n\n- before injection: HOST-A healthy, restart count 0, `VmRSS=24960 kB`, `VmHWM=24960 kB`\n- sent the immutable pre-standard capture twice from an in-memory copy, changing only SIP/report identity; both 1,247-byte datagrams received `SIP/2.0 200 OK`\n- live `rfc6035_2otel_reports_total{service_version=\"0.1.1\"}` gained exactly one pre-standard report\n- live `rfc6035_2otel_duplicates_total{service_version=\"0.1.1\"}` returned exactly 1\n- HOST-A log contains exactly one export for call id `wave2-p2-dedupe`\n- after injection: healthy, restart count 0, `VmRSS=25012 kB`, `VmHWM=25012 kB`\n\nThe real-call criterion is not met. Current live rows contain only sender `unknown`: two controlled standard reports and one controlled pre-standard report. There are zero handset-originated rows labelled `PHONE-A` or `PHONE-B`. The Wave 2 run contract limits phone access to read-only `config/get` and `lineInfo`; remotely originating or hanging up calls would exceed authority, and no human is available mid-run.\n\nResume at the phones: place and hang up at least three calls whose reports originate from PHONE-A (`standard`) and three whose reports originate from PHONE-B (`prestandard`). Then query `rfc6035_2otel_reports_total{service_version=\"0.1.1\"}` broken down by `rfc6035_sender_name,rfc6035_report_dialect`, confirm at least 3 for each required pairing, re-read RSS/restart count, and close this issue with a completion commit. Do not count the controlled `unknown` replays as real calls.",
+        "createdAt": "2026-08-12T21:28:57Z",
+        "id": "IC_kwDOT2fj0c8AAAABOkulpw",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/11#issuecomment-5273003431",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "## Acceptance complete on released 0.1.1\n\nThree real completed calls involved both handsets. The released-service query returned exactly `PHONE-A / standard = 3` and `PHONE-B / prestandard = 3` from `rfc6035_2otel_reports_total{service_version=\"0.1.1\"}`.\n\nThe first validation call exposed a deployment omission: HOST-A had no `senders:` block, so its two reports correctly landed as `unknown`. I added only the frozen PHONE-A and PHONE-B mappings to `/opt/rfc6035-2otel/config.yaml`, recreated the same digest-pinned image, and did not count that call toward the named pairing query. The post-recreate baseline was `VmRSS=22328 kB`, `VmHWM=22328 kB`, healthy, restart count 0. The final snapshot was `VmRSS=24580 kB`, `VmHWM=24580 kB`, healthy, restart count 0, with UDP 5060 held by the released process.\n\nThe prior controlled replay remains the duplicate proof: exactly one accepted pre-standard report, `rfc6035_2otel_duplicates_total{service_version=\"0.1.1\"} = 1`, and exactly one export log for its call id. No replay was counted as a real handset call.",
+        "createdAt": "2026-08-13T09:47:23Z",
+        "id": "IC_kwDOT2fj0c8AAAABOqKouA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/11#issuecomment-5278705848",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T19:35:30Z",
+    "labels": [],
+    "milestone": null,
+    "number": 11,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P2-L8: Prove both dialects and deduplication in a live soak",
+    "updatedAt": "2026-08-13T09:47:25Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/11"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nCreate charts/rfc6035-2otel with secure defaults and UDP-capable service behavior.\n\n## Ownership\ncharts/** only.\n\n## Dependencies\nNone.\n\n## Exclusions\nNo homelab deployment, workflows, integration files, network, Docker publishing, or source edits.\n\n## Acceptance\n- [ ] Image repository defaults to ghcr.io/rknightion/rfc6035-2otel.\n- [ ] Defaults are non-root, read-only root filesystem, drop ALL capabilities, and no-new-privileges.\n- [ ] UDP 5060 service types that work and do not work are documented.\n- [ ] values.yaml documents every key.\n- [ ] Chart version and appVersion are both 0.0.0.\n- [ ] helm lint and default/OTLP-override helm template checks pass.",
+    "closedAt": "2026-08-12T19:42:14Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed by fceae20. `helm lint` reports 1 chart linted and 0 failed; default and OTLP-override templates render UDP 5060, non-root/read-only/no-escalation/drop-ALL security, GHCR image defaults, and versions 0.0.0. Provider-specific UDP LoadBalancer behavior remains intentionally unproven.",
+        "createdAt": "2026-08-12T19:42:49Z",
+        "id": "IC_kwDOT2fj0c8AAAABOjwSFA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/10#issuecomment-5271982612",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T19:35:29Z",
+    "labels": [],
+    "milestone": null,
+    "number": 10,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P1-L7: Add the community Helm chart",
+    "updatedAt": "2026-08-12T19:42:50Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/10"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nPort the sibling generation seam with spec/signal-catalog.json as registry and generated dashboard/rules artefacts.\n\n## Ownership\ngrafana/**, dashboards/**, alerts/**, spec/signal-catalog.json only.\n\n## Dependencies\nP1-L1 and P1-L2 contracts must be frozen first.\n\n## Exclusions\nNo source exporter changes, no Grafana Cloud writes, no Makefile edits, no Phase 2 live checks.\n\n## Acceptance\n- [x] Dashboard has call-quality and collector-health sections.\n- [x] Queries break down by rfc6035_sender_name and rfc6035_report_dialect.\n- [x] Units are percentunit for 0–1 ratios and s for durations.\n- [x] One-way-delay no-data is treated as normal.\n- [x] Alerts gate quality on reports existing and never fire on absence.\n- [x] build_dashboard.py --check and build_rules.py --check pass.\n- [x] grafana tests pass and every panel metric is catalogued.\n- [x] Adding an N+1 metric is measured as exactly three touches.\n",
+    "closedAt": "2026-08-12T20:16:57Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed by fda5313. The catalog now drives generated signal docs, a dashboard with explicit Call quality and Collector health rows, and absence-safe alerts. Both --check modes and six generator tests pass. A disposable nineteenth metric proved three author actions: emitter, catalog entry, regeneration; regeneration updated the dashboard and docs automatically.",
+        "createdAt": "2026-08-12T20:17:10Z",
+        "id": "IC_kwDOT2fj0c8AAAABOkE9Fg",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/9#issuecomment-5272321302",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T19:35:27Z",
+    "labels": [],
+    "milestone": null,
+    "number": 9,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P1-L6: Generate the signal catalog, dashboard, and alerts",
+    "updatedAt": "2026-08-12T20:17:10Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/9"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nCreate the complete operator-focused docs set and community files, including the project-specific dialect guide.\n\n## Ownership\ndocs/**, docs.toml, README.md, CONTRIBUTING.md, SECURITY.md only.\n\n## Dependencies\nP1-L1 and P1-L2 contracts must be frozen first.\n\n## Exclusions\nNo signal/catalog invention, no code or integration edits, no marketing voice, no network/GitHub changes.\n\n## Acceptance\n- [x] Required pages exist: index, getting-started, configuration, signals, env-vars, security, troubleshooting, dialects.\n- [x] Every documented signal and catalog entry match bidirectionally.\n- [x] Sender cardinality, absent-is-not-zero, and wire/export units are explicit.\n- [x] All documented commands are executed and evidenced.\n- [x] Docs configuration and community files are adapted with no sibling-name residue.\n",
+    "closedAt": "2026-08-12T20:16:56Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed by fda5313. Required pages and community files are present; the generated signal catalog is bidirectionally checked against docs/signals.md. make check passed, the documented local build/version/copy commands were executed, and the docs retain the sender-cardinality, absent-is-not-zero, dual-dialect, and wire/export-unit contracts.",
+        "createdAt": "2026-08-12T20:17:09Z",
+        "id": "IC_kwDOT2fj0c8AAAABOkE8Ww",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/8#issuecomment-5272321115",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T19:35:26Z",
+    "labels": [],
+    "milestone": null,
+    "number": 8,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P1-L5: Write operator documentation and community files",
+    "updatedAt": "2026-08-12T20:17:09Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/8"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nPort the frozen D10 workflow set plus Renovate and golangci configuration from the sibling, retaining vetted full action SHAs and the exact broker inputs.\n\n## Ownership\n.github/**, renovate.json, .golangci.yml only.\n\n## Dependencies\nNone.\n\n## Required precheck\nRoot checks repo secrets TS_WIF_CLIENT_ID and TS_WIF_AUDIENCE before implementation; workflows ship either way.\n\n## Exclusions\nNo fallback to GITHUB_TOKEN; no private-repository-disposition jobs/guards; no source, chart, or integration changes.\n\n## Acceptance\n- [ ] All 12 D10 workflows exist.\n- [ ] release-please passes permission-set and role release-please-rfc6035-2otel.\n- [ ] docs-sync passes permission-set docs-sync and role docs-sync-rfc6035-2otel.\n- [ ] publish uses charts/rfc6035-2otel.\n- [ ] Every uses reference is a full SHA.\n- [ ] actionlint and zizmor pass if installed; otherwise YAML parse evidence records skips.",
+    "closedAt": "2026-08-12T19:41:50Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed by efb5247. All 12 required workflows exist; actionlint exits 0; the normal zizmor audit reports no findings (31 lower-confidence items are suppressed by its default threshold); every external `uses:` is a full commit SHA. Broker inputs are exactly release-please permission-set/role `release-please-rfc6035-2otel` and docs-sync permission-set `docs-sync` with role `docs-sync-rfc6035-2otel`. The repository precheck found both TS_WIF identifiers present.",
+        "createdAt": "2026-08-12T19:42:01Z",
+        "id": "IC_kwDOT2fj0c8AAAABOjvybg",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/7#issuecomment-5271974510",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T19:35:25Z",
+    "labels": [],
+    "milestone": null,
+    "number": 7,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P1-L4: Port and harden the complete workflow set",
+    "updatedAt": "2026-08-12T19:42:01Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/7"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nConfigure release-please and GoReleaser so the first feat release is v0.1.0.\n\n## Ownership\n.goreleaser.yaml, release-please-config.json, .release-please-manifest.json, CHANGELOG.md only.\n\n## Dependencies\nNone.\n\n## Exclusions\nNo workflows, chart edits, integration files, network, git/GitHub, Docker, or release execution.\n\n## Acceptance\n- [ ] Manifest is exactly {\".\":\"0.0.0\"}.\n- [ ] release-type go, bump-minor-pre-major true, sibling changelog sections, and chart extra-files are configured.\n- [ ] GoReleaser is adapted without Lens content.\n- [ ] JSON parses.\n- [ ] goreleaser check passes if installed; otherwise YAML parse evidence records the skip.",
+    "closedAt": "2026-08-12T19:49:00Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed by 3bcb027. Verified the manifest is exactly `{\\\".\\\":\\\"0.0.0\\\"}`, both release-please JSON files parse with `jq`, no sibling/Lens residue remains, and `goreleaser check` validated the v2 configuration.",
+        "createdAt": "2026-08-12T19:39:07Z",
+        "id": "IC_kwDOT2fj0c8AAAABOjt9ow",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/6#issuecomment-5271944611",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "The first live release-please run disproved the assumed bootstrap behavior: PR #14 opened as 1.0.0. Current Release Please treats a repository with no latest release as a bootstrap and defaults that bootstrap to 1.0.0 even when the manifest contains 0.0.0; `bump-minor-pre-major` only applies when a latest release exists. Correcting the package with explicit `initial-version: 0.1.0`; the manifest remains exactly 0.0.0 as required. PR #14 will not be merged unless it updates to `chore(main): release 0.1.0`.",
+        "createdAt": "2026-08-12T19:48:54Z",
+        "id": "IC_kwDOT2fj0c8AAAABOjz6QA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/6#issuecomment-5272042048",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T19:35:23Z",
+    "labels": [],
+    "milestone": null,
+    "number": 6,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P1-L3: Add release-please and GoReleaser plumbing",
+    "updatedAt": "2026-08-12T19:49:00Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/6"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nCreate internal/selfobs with exactly the nine D5 signals and closed-set attributes, exposed through a small recorder interface for root-owned wiring.\n\n## Ownership\ninternal/selfobs/** only.\n\n## Dependencies\nNone.\n\n## Exclusions\nNo cmd wiring, integration files, network, git/GitHub, Docker, Grafana, HOST-A, Lens, phones, or extra signals.\n\n## Acceptance\n- [ ] Exactly the nine frozen signals exist with exact kinds, units, and attribute sets.\n- [ ] In-memory exporter tests cover every signal.\n- [ ] Attribute values are constrained to documented closed sets.\n- [ ] No unbounded call ID, SIP URI, or raw address attribute exists.\n- [ ] go test ./internal/selfobs/... passes.\n- [ ] Return documents the constructor and expected root integration call sites.",
+    "closedAt": "2026-08-12T19:41:36Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed by 4d264c6. `go test ./internal/selfobs/...` and `go vet ./internal/selfobs/...` pass. Tests prove exactly nine frozen signals, exact kinds/units/attribute keys, and rejection of unregistered dimensions. Runtime wiring remains root-owned integration.",
+        "createdAt": "2026-08-12T19:42:00Z",
+        "id": "IC_kwDOT2fj0c8AAAABOjvxPA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/5#issuecomment-5271974204",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T19:35:22Z",
+    "labels": [],
+    "milestone": null,
+    "number": 5,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P1-L2: Add bounded collector self-observability",
+    "updatedAt": "2026-08-12T19:42:00Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/5"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Objective\nLand D1, D13, D14, and D15 together in internal/otelexport and internal/config, including the bounded sender map. D16 integration in cmd is root-owned and follows during the gate.\n\n## Ownership\ninternal/otelexport/**, internal/config/**, config.example.yaml only.\n\n## Dependencies\nNone.\n\n## Exclusions\nNo cmd, Makefile, go.mod/go.sum, Dockerfile, deploy, testdata, network, git, GitHub, Docker, Grafana, HOST-A, Lens, or phone changes.\n\n## Acceptance\n- [ ] No vq instrument or attribute name survives in internal or cmd.\n- [ ] Every emitted attribute key is namespaced.\n- [ ] 250 ms records as 0.25 s and 2% records as 0.02 unit 1; logs retain wire values.\n- [ ] Every histogram carries D14 advisory boundaries.\n- [ ] Log body is raw report and has no event.name attribute.\n- [ ] Registry client.port/network.transport/network.protocol.name attributes exist.\n- [ ] Unmatched sender is unknown and rfc6035.report.call_id is log-only.\n- [ ] go test ./internal/otelexport/... ./internal/config/... passes.",
+    "closedAt": "2026-08-12T19:42:39Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Completed by d05f2d7. Focused config/exporter tests pass. They prove the complete rename, seconds and ratio conversions, D14 boundaries, raw log body, no duplicate event.name attribute, registry client/network attributes, bounded sender map with unknown fallback, and call ID excluded from metrics. Root integration still wires the new seam and D16 resource merge.",
+        "createdAt": "2026-08-12T19:42:51Z",
+        "id": "IC_kwDOT2fj0c8AAAABOjwS8g",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/4#issuecomment-5271982834",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T19:35:20Z",
+    "labels": [],
+    "milestone": null,
+    "number": 4,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "P1-L1: Correct the public metric and log contract",
+    "updatedAt": "2026-08-12T19:42:51Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/4"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Mission\n\nBring rfc6035-2otel from the deployed Wave 1 prototype to sibling parity with polylens2otel, correct the public OpenTelemetry signal contract before it freezes, cut v0.1.0, deploy the CI-published image to HOST-A by digest, and prove the released build live.\n\nRun contract: Phase 1 must complete before the seven-item gate. No Phase 2 entry may start unless the gate passes in full. Root owns GitHub, git, CI, release, HOST-A, Grafana, phones, and integration. Lane workers are local-only and never commit or use networked tools.\n\n## Frozen decisions\n\n- D1: observed-call signals use rfc6035.*; collector self-signals use rfc6035_2otel.*.\n- D2: first release is v0.1.0. A future 1.0.0 requires both a non-Poly RFC 6035 sender and the pre-standard grammar from a second Poly model or firmware.\n- D3: self-observability, docs/docs-sync, dashboard/alerts, and Helm are all in scope.\n- D4: metric sender identity comes only from the bounded operator sender map; unmatched is unknown; raw client address is log-only.\n- D5: exactly nine self-signals: build_info, datagrams, reports, parse_errors, duplicates, responses, export_failures, dedupe_cache.usage, and report.process.duration, with the frozen names/units/closed attributes from the Wave 2 goal.\n- D6: self dashboard means Grafana panels, never an in-binary HTTP or Prometheus endpoint.\n- D7: HOST-A retains network_mode: host.\n- D8: HOST-A normalises to /opt/rfc6035-2otel/config.yaml plus /opt/compose/rfc6035-2otel/{compose.yml,.env}, with a digest-pinned GHCR image and no source tree.\n- D9: release-please uses permission-set and role release-please-rfc6035-2otel; docs-sync uses permission-set docs-sync and role docs-sync-rfc6035-2otel.\n- D10: required workflows are ci, codeql, scorecard, dependency-review, docker-security, actionlint, zizmor, publish, release-please, release-assets, helm, and trigger-docs-sync.\n- D11: generated dashboards and rules live in this repository; this run does not write them to Grafana Cloud.\n- D12: no credential rotation.\n- D13: delay/jitter metrics export seconds; loss/discard metrics export 0–1 ratios with unit 1; logs retain wire milliseconds and percentages.\n- D14: explicit histogram boundaries are frozen by family.\n- D15: log body is the raw report; event.name is a field only; registry client/network attributes are present.\n- D16: the OTel resource merges the standard environment/default resource while explicit service attributes remain authoritative.\n- Wave 1 decisions still binding: both dialects auto-detected; UDP only; no syslog; metrics and logs but no traces; Go.\n- spec/protocol.md remains binding in full, and real captures outrank the RFC-derived grammar.\n\n## Full rfc6035.* rename contract\n\n| Before | After | Contract detail |\n|---|---|---|\n| vq.call.mos_lq, vq.call.mos_cq, vq.call.r_factor_lq, vq.call.r_factor_cq | rfc6035.call.* with the same leaves | Prefix change; scores remain unit 1 |\n| vq.call.packet_loss, vq.call.discard_rate | rfc6035.call.packet_loss, rfc6035.call.discard_rate | Metric values change from 0–100 percent to 0–1 ratio, unit 1; logs keep wire percent |\n| vq.call.round_trip_delay, vq.call.one_way_delay, vq.call.jitter | rfc6035.call.* with the same leaves | Metric values change from milliseconds to seconds, unit s; logs keep wire milliseconds |\n| vq.report.dialect, vq.report.type, vq.report.call_id | rfc6035.report.* with the same leaves | call_id remains log-only |\n| vq.direction with local/remote | rfc6035.report.side with local/remote | This is endpoint side, not network I/O direction |\n| vq.jitter.type with IAJ/MAJ | rfc6035.jitter.kind with interarrival/mean_absolute | Key and values both change |\n| vq.field.<x> and vq.field.<x>.original_key | rfc6035.field.<x>; original_key only when it differs from the normalised key | Lossless overflow without redundant attributes |\n| log event vq.report.received | rfc6035.report.received | Event-name field, with no duplicate event.name attribute |\n\nEvery metric and attribute key is namespaced. Metrics and logs also carry rfc6035.sender.name from the bounded sender map. The raw client address never appears on metrics.\n\nHistogram boundaries:\n- MOS: 1, 1.5, 2, 2.5, 3, 3.5, 3.8, 4, 4.2, 4.4, 5\n- R-factor: 0, 20, 40, 50, 60, 70, 80, 90, 94, 100\n- loss/discard: 0, 0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1\n- delay/jitter seconds: 0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1\n\nThe log body is the original report text; registry attributes client.address, client.port, network.transport=udp, and network.protocol.name=sip are used; logs preserve wire units. The resource honours OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME and includes telemetry SDK metadata, with explicit service values overriding environment values.\n\n## Entries\n\n- [x] P1-L1 metric contract\n- [x] P1-L2 self-observability\n- [x] P1-L3 release plumbing\n- [x] P1-L4 workflow set\n- [x] P1-L5 docs\n- [x] P1-L6 dashboard and alerts\n- [x] P1-L7 Helm chart\n- [x] GATE: all seven gate items\n- [x] P2-L8 two-dialect soak\n- [x] P2-L9 docs hub\n- [x] P2-L10 parser hardening\n\n## Gate\n\n- [x] Integrated make check is green.\n- [x] Exact pushed SHA is green in CI, including first CodeQL, Scorecard, zizmor, actionlint, dependency-review, and docker-security executions.\n- [x] Release PR is chore(main): release 0.1.0; merge produces v0.1.0, GitHub Release, green publish/binaries, and a public GHCR package.\n- [x] HOST-A runs the released digest-pinned image in the normalised layout, healthy with restart count 0 and UDP 5060.\n- [x] Released service_version proves rfc6035_* present, vq_* absent, corrected live values/buckets, real build metadata, self-signals, and a raw-report log.\n- [x] HOST-A source-copy and archived Python collector cleanup is completed only after the required checksum proof.\n- [x] Phase-completion comment is posted here.\n",
+    "closedAt": "2026-08-13T09:47:54Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Phase 1 started from clean main at 206c6f1f01137a934462f8218cac98b6165f9cf6 after re-reading the tracker and all lane issues. Active dependency-free lanes: #4, #5, #6, #7, and #10. #8 and #9 remain held on #4+#5. The required broker secret precheck passed: TS_WIF_CLIENT_ID and TS_WIF_AUDIENCE are both present. GitHub auth passed; the initial gcx metrics check failed because its keychain-backed refresh token could not be persisted, so live gate item 5 is currently blocked but Phase 1 continues per the run contract.",
+        "createdAt": "2026-08-12T19:38:00Z",
+        "id": "IC_kwDOT2fj0c8AAAABOjtQgA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/3#issuecomment-5271933056",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Exact-head gate progress at 8921f62fa981c7b39175d9633f101f79f302197d:\n\n- CI 31637219351: success.\n- CodeQL 31637219936: success.\n- Scorecard 31637219376: success.\n- zizmor 31637219336: success.\n- Docker Security 31637219384: success.\n- actionlint 31637219778: success after one rerun; its first attempt failed downloading the external actionlint archive with curl 56 and an incomplete gzip, not a lint finding.\n- Dependency review is pull-request-only; PR run 31636886377 succeeded.\n- Helm PR run 31636885884 succeeded.\n- Release workflow 31637220064 is still publishing the edge image and has not been treated as release evidence.\n\nThe release PR remains titled exactly chore(main): release 0.1.0. Its earlier CI run 31636885860 exposed the observer-test scheduler race fixed by 8921f62; the failed jobs have been rerun against the updated base and are pending. No release merge has occurred.",
+        "createdAt": "2026-08-12T20:24:23Z",
+        "id": "IC_kwDOT2fj0c8AAAABOkJZOA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/3#issuecomment-5272394040",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "## Phase gate complete\n\nAll seven items in Wave 2 section 5.2 passed before any Phase 2 work began.\n\n1. **Integrated tree:** `make check` passed at `125934174e6c409ffbeb4f0389570ee73689e258`, including race tests and all generated Grafana checks.\n2. **Exact-head CI/security:** CI `31639180266`, CodeQL `31639181163`, Scorecard `31639180336`, zizmor `31639180267`, actionlint `31639181106`, Docker Security `31639180260`, and PR dependency review all passed. The release merge `6bf3edf2627985eb5cc6b53dec31601574be8502` also has all exact-head workflows green.\n3. **Releases:** PR #14 opened exactly as `chore(main): release 0.1.0`, merged, and produced immutable public `v0.1.0`. Live gate verification then exposed #18: explicit OTel gauge unit `1` translated build-info to `_ratio`. The additive correction merged via PR #19 as public `v0.1.1`; Release run `31639452999` completed with green publish, binaries, signed multi-arch image, SBOMs, provenance, and Helm chart. No tag was rewritten or deleted.\n4. **HOST-A:** runs `ghcr.io/rknightion/rfc6035-2otel@sha256:2ac866cce2d0c71fd454331a0b539033f452828dc2c4297590c30d122c3410c1`, healthy, restart count 0, host network, read-only root, cap-drop ALL, no-new-privileges, holding UDP 5060. Startup reports version `0.1.1`, commit `6bf3edf2627985eb5cc6b53dec31601574be8502`; the normalised config explicitly sets `service.version: 0.1.1`.\n5. **Live signal contract, filtered on `service_version=\"0.1.1\"`:** `rfc6035_call_mos_lq_count` returned one series; both `count({service_version=\"0.1.1\",__name__=~\"vq_call_.*\"})` and the wider `vq_.*` query returned no rows; controlled wire RTD 250 ms exported as `rfc6035_call_round_trip_delay_seconds_sum = 0.25`; wire NLR 2% exported as `rfc6035_call_packet_loss_sum = 0.02`; MOS `le` labels were `1,1.5,2,2.5,3,3.5,3.8,4,4.2,4.4,5,+Inf`; `rfc6035_2otel_build_info` carried commit `6bf3edf...` and build date `2026-08-12T21:48:05+01:00`; seven self-signal families returned; a real report matched by call ID returned the full raw body with wire values. The generated MOS P95 panel query returned `4.19`.\n6. **HOST-A hygiene:** only `/opt/compose/rfc6035-2otel/{compose.yml,.env}` and `/opt/rfc6035-2otel/config.yaml` remain. The retired Python source was deleted only after local and HOST-A SHA-256 both matched `1e45612b37e7e0481f3c097c70e97002b1570fa9aae08b769c6c5c2a4afc35aa`.\n7. **Phase completion:** this comment is the durable completion record. Phase 2 may now begin in the frozen order and scope.",
+        "createdAt": "2026-08-12T20:57:36Z",
+        "id": "IC_kwDOT2fj0c8AAAABOkc82g",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/3#issuecomment-5272714458",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "## Wave 2 complete\n\nP2-L8 closed from `4df6e823f033b04a75013bb1ef0eaa29bd721c7c`. Three real completed calls involved both handsets, and the released-service query returned `PHONE-A / standard = 3` plus `PHONE-B / prestandard = 3`. Duplicate suppression remained proven, and HOST-A finished healthy on the signed digest with restart count 0.\n\nAll eleven entries are now at their stop rule: P1-L1 through P1-L7 complete, the seven-item gate passed, and P2-L8 through P2-L10 complete. The first public release remains immutable as v0.1.0; the additive build-info correction is released and deployed as v0.1.1.",
+        "createdAt": "2026-08-13T09:47:52Z",
+        "id": "IC_kwDOT2fj0c8AAAABOqK9gg",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/3#issuecomment-5278711170",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Closing the parent tracker after #11 completed on main at 4df6e823f033b04a75013bb1ef0eaa29bd721c7c. The terminal Wave 2 report is being reconstructed from this tracker and live state.",
+        "createdAt": "2026-08-13T09:47:53Z",
+        "id": "IC_kwDOT2fj0c8AAAABOqK-JA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/3#issuecomment-5278711332",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T19:35:18Z",
+    "labels": [],
+    "milestone": null,
+    "number": 3,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Wave 2: sibling parity, public signal contract, and v0.1.0",
+    "updatedAt": "2026-08-13T09:47:54Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/3"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## Mission\n\nImplement the frozen 2026-08-12 Wave 1 goal: receive live Poly Edge E350 RFC 6035 voice-quality PUBLISH reports in both standard and Poly pre-standard dialects, parse them, export OTLP metrics and logs, and replace the Python collector on HOST-A.\n\n## Binding decisions\n\n- Go; UDP only; both dialects auto-detected.\n- Metrics and logs over OTLP; no traces, syslog, or Prometheus endpoint.\n- Real captures outrank the RFC-derived field list.\n- Root owns package seams, integration, commits, pushes, Lens writes, and HOST-A deployment.\n- OPNsense and all Poly Lens attributes except the collector address/port are out of scope.\n\n## Plan\n\n1. Capture a real report from each handset dialect and restore the Lens collector target.\n2. Implement the parser, SIP listener, OTLP exporter, and validated YAML/environment configuration in isolated lanes.\n3. Wire the packages and run the integrated gate.\n4. Build and deploy a hardened host-network container on HOST-A, replacing the Python collector.\n5. Prove both signals in Grafana Cloud and record live final state.\n\n## Acceptance criteria\n\n- [ ] Real standard-dialect capture exists, or an explicit not-obtained disposition records why it remains unmeasured.\n- [ ] Real pre-standard capture exists, or an explicit not-obtained disposition records why it remains unmeasured.\n- [ ] Parser handles both measured dialects, all seven frozen protocol traps, absent values, folding, and unknown fields.\n- [ ] SIP listener returns conformant responses, deduplicates retransmissions, and survives hostile datagrams.\n- [ ] OTLP metrics and one full-field log record are exported per report; call IDs never become metric attributes.\n- [ ] YAML plus environment configuration loads and validates with actionable errors.\n- [ ] `make check` passes on the integrated tree.\n- [ ] Container is non-root/read-only/cap-drop-all and compose validates.\n- [ ] New collector owns UDP 5060 on HOST-A; Python collector container is absent.\n- [ ] Grafana Cloud queries return metric and log rows.\n- [ ] Poly Lens collector address is restored to `IP-HOST-A:5060` and verified by read-back.\n- [ ] Final Wave 1 report is written with all seven lane dispositions and exact evidence.\n",
+    "closedAt": "2026-08-12T17:37:44Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Wave 1 checkpoint (pre-integration):\n\n- W1 captured a genuine 833-byte standard-dialect PUBLISH from PHONE-A. Two connected/terminated calls from PHONE-B produced no packet at HOST-A; independent phone syslog shows `Publish Vq-Rtcp-Xr` attempts timing out after about 32 seconds, so pre-standard remains explicitly unmeasured rather than inferred. Both handsets read back with collector `IP-HOST-A:5060`; no Lens policy write was made.\n- W3 focused SIP suite passes: concurrent UDP handling, conformant status paths, Call-ID+CSeq dedupe, and listener liveness after hostile datagrams.\n- W5 focused configuration suite passes after adding the root-owned YAML dependency.\n- W2 is now active against the real standard fixture; W4 implementation is correcting current OTel SDK API drift after exact dependency resolution.\n\nNo commit yet; W6 integration remains the next commit boundary.",
+        "createdAt": "2026-08-12T17:27:30Z",
+        "id": "IC_kwDOT2fj0c8AAAABOiBcYA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/2#issuecomment-5270166624",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Wave 1 final checkpoint:\n\n- Commit `25f9b4d954be9f7077dd9f07ff2654f4d9db6391` is on `main`; exact-head CI run `31623576736` passed.\n- The hardened `rfc6035-2otel:wave1` container is healthy on HOST-A, owns UDP 5060, runs as `65532:65532` with a read-only root filesystem, host networking, all capabilities dropped, and no-new-privileges. The Python `vq-collector` container count is zero.\n- A real PHONE-A call produced one 833-byte standard PUBLISH; the Go collector returned `200 OK` with no retransmission, exported 24 metric series, and produced one native OTLP log row. Exact m7kni queries for `vq_call_mos_lq_count{service_name=\"rfc6035-2otel\",vq_report_dialect=\"standard\"}` and `{service_name=\"rfc6035-2otel\"} | vq_report_call_id=\"b6da229c5a008a2b2040cb32eb139733\"` each returned one row.\n- PHONE-B again entered `Publish Vq-Rtcp-Xr` for 32 seconds and returned to `Idle`, but a 90-second HOST-A capture saw zero packets from `IP-PHONE-B`. The pre-standard grammar therefore remains unmeasured and is cleanly rejected rather than inferred.\n- Both handsets authoritatively read back collector `IP-HOST-A:5060`, session reports enabled, periodic reports disabled, with PHONE-A standard (`1`) and PHONE-B pre-standard (`0`).\n\nThe code/deployment outcome is complete for the measured standard path. The frozen both-dialects outcome remains partial solely because the pre-standard handset emits no wire packet; its exact resume boundary is preserved in `testdata/real/prestandard-2026-08-12.not-obtained.md`. The required run-end report is the terminal local action and follows after this tracker update.",
+        "createdAt": "2026-08-12T17:47:39Z",
+        "id": "IC_kwDOT2fj0c8AAAABOiQh7g",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/2#issuecomment-5270413806",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Final-head addendum: the parser-owned dialect seam fix is now commit `8763e9c8c17ae8c23eb46ea8253c5cd3631a4bfe`, pushed to `main` with exact-head CI run `31624504916` successful. HOST-A was rebuilt and force-recreated from that head; the healthy container reports the same commit. A fresh PHONE-A call at the final head produced standard report `005cafcee1d48f77e554b233f7139733`; the exact m7kni MOS metric query and exact-call log query each returned one row with `service_version=\"8763e9c\"`. Final live counts remain one new container, zero Python containers, and 29 deployment files.",
+        "createdAt": "2026-08-12T17:51:22Z",
+        "id": "IC_kwDOT2fj0c8AAAABOiUhPQ",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/2#issuecomment-5270479165",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Pre-standard diagnostic addendum:\n\n- Live `config/get` parity now covers collector address/port, RTCP-XR enable, session/periodic switches, location, alert thresholds, and IPv4 mode. The only intentional VQ difference remains `rfc6035.enable` (`1` PHONE-A, `0` PHONE-B).\n- Under the same call procedure, PHONE-A records `CStatePublishClient::OnEvResponse 200`; PHONE-B records `CStatePublishClient::OnEvResponse 480` plus a self-generated PUBLISH timeout after 32 seconds. A simultaneous HOST-A capture still records zero packets from PHONE-B. This narrows the boundary to the handset or a destination selected before HOST-A; it does not reveal a body grammar.\n- Read-only Lens `accessPCAPUrl` returned `NO_AVAILABLE_PCAPS`. Starting a new device PCAP was not attempted because Wave 1 did not grant that external mutation.\n- The stronger disposition is committed at `ce495686efcdff630a452ccb68f25bf454941486`; exact-head CI run `31625260683` passed. The healthy HOST-A implementation remains `8763e9c` because this final commit changes documentation only.\n\nResume requires separate authority for a Lens device PCAP, physical Ethernet/LAN access to PHONE-B, or the attempted PUBLISH from the selected SIP proxy. Until one produces a real packet, pre-standard grammar remains deliberately unimplemented.",
+        "createdAt": "2026-08-12T17:59:06Z",
+        "id": "IC_kwDOT2fj0c8AAAABOicFEA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/2#issuecomment-5270603024",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Firewall-unblock completion addendum:\n\n- Rob added the narrowly scoped IOT-to-HOST-A exception. The agent did not access or change OPNsense.\n- A genuine pre-standard PUBLISH from PHONE-B was captured and committed as testdata/real/prestandard-2026-08-12.txt. The measured body uses a bare VQSessionReport line plus paired ToID/FromID fields; the parser now detects that structural pair and maps it to the common call-identity model.\n- Final implementation commit 206c6f1f01137a934462f8218cac98b6165f9cf6 is pushed on main. Exact-head CI run 31628098859, job 94219659972, passed go vet, go test -race, go mod tidy -diff, and the production build.\n- HOST-A is running the same final commit in healthy image rfc6035-2otel:wave1. The process owns UDP 5060, runs as 65532:65532 with read-only rootfs, host networking, all capabilities dropped, and no-new-privileges. Final live counts are one new container, zero Python containers, and 30 deployment files.\n- PHONE-B final-head call 8fbf6990b15d8914e46f71e84c908b97 produced one pre-standard PUBLISH and one 200 OK with no retransmission in the 90-second capture. The exact m7kni metric query for service_version=206c6f1 and vq_report_dialect=prestandard returned one row/value 1; the exact-call log query returned one row with dialect prestandard and client_address IP-PHONE-B.\n- PHONE-A final-head call f78e97cab264e550e5d9b4b12b139733 exported as standard. Its exact m7kni metric query for service_version=206c6f1 and vq_report_dialect=standard returned one row/value 1; the exact-call log query returned one row with dialect standard and client_address IP-PHONE-A.\n- Final authoritative config/get read-back shows both phones targeting IP-HOST-A:5060 with RTCP-XR and session reports enabled and periodic reports disabled. PHONE-A remains standard mode (rfc6035.enable=1); PHONE-B remains pre-standard mode (rfc6035.enable=0). No Lens policy write occurred, so no restoration mutation was required.\n\nAll W1-W7 acceptance outcomes are now satisfied at the final head. The terminal report will preserve the distinction between local, exact-head CI, deployed, and live/Grafana proof.",
+        "createdAt": "2026-08-12T18:38:00Z",
+        "id": "IC_kwDOT2fj0c8AAAABOi-xng",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/rfc6035-2otel/issues/2#issuecomment-5271171486",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-12T17:11:59Z",
+    "labels": [],
+    "milestone": null,
+    "number": 2,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Build and deploy first working RFC 6035 to OTLP release",
+    "updatedAt": "2026-08-12T18:38:00Z",
+    "url": "https://github.com/rknightion/rfc6035-2otel/issues/2"
+  }
+]

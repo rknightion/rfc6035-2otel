@@ -41,16 +41,23 @@ its ownership escape hatch. The **closed work index** doc maps every pre-migrati
 ### Rules with no exceptions
 
 **`backlog/` is committed to git, so tasks and docs must never contain real account identifiers or
-personal data** — no phone numbers, SIP URIs, MAC addresses, handset serials, tenant or account IDs,
-credentials, or capture payloads containing them. Write the shape, not the instance: "the second
-handset", `<dialect>/<sender>/<report>`. Aggregate counts, timings, metric names and structural
-findings are fine. Handset IPs on the lab network are already public in this repo's issue history and
-are not the concern; anything that identifies a person or authenticates to something is. Sweep before
-committing:
+personal data** — no phone numbers, SIP URIs, MAC addresses, host or handset names, lab IP addresses,
+handset serials, Grafana stack hostnames or ids, tenant or account IDs, credentials, or capture
+payloads containing them. Write the shape, not the instance: "the second handset", "the collector
+host", `<dialect>/<sender>/<report>`. Aggregate counts, timings, metric names, CI run ids, commit
+SHAs and structural findings are fine, and so are SIP `Call-ID` values — they are per-call hashes
+that identify nothing.
+
+The same placeholder vocabulary as `archive/README.md` applies, so the two agree: `HOST-A`,
+`PHONE-A`, `PHONE-B` — that table says what each denotes without naming it, which is why the pattern
+below matches address and hostname *shapes* rather than listing the real names. Deliberately so:
+a sweep that spells out the identifiers it is hunting for plants them permanently in a tracked file,
+which is the leak it exists to prevent. The host and handset names are the one class you must check
+by eye.
 
 ```bash
-grep -rniE 'rknightion|rob-knight|m7kni|@gmail|sip:[0-9]{6,}|([0-9a-f]{2}:){5}[0-9a-f]{2}' backlog/ \
-  && echo "PII FOUND"
+grep -rniE '10\.0\.[0-9]|100\.(6[4-9]|[7-9][0-9])\.|grafana\.[a-z0-9-]+\.(com|net)|@gmail|sip:[0-9]{6,}|([0-9a-f]{2}:){5}[0-9a-f]{2}' backlog/ \
+  && echo "REVIEW EACH HIT"
 ```
 
 **Never use `--notes` or `--plan` bare.** They *silently replace* the whole section — another

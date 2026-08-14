@@ -3,7 +3,7 @@ id: doc-0002
 title: Wave operating model
 type: guide
 created_date: '2026-08-14 16:31'
-updated_date: '2026-08-14 16:32'
+updated_date: '2026-08-14 17:01'
 ---
 This project's own campaign rules. The model itself — run contract, routing, lane briefs, goal-file
 template, pre-flight checklist — is the fan-out protocol doc, and nothing here restates it. If a
@@ -44,7 +44,7 @@ from telemetry, it states which stream it queried and why that stream would carr
 existed. Check `docker logs rfc6035-2otel` or the OTLP data.
 
 **Deployment inputs that live only on the host are a standing hazard.** The live soak failed once
-because Camden's `senders:` mapping block, required by the cardinality contract, was simply absent
+because the collector host's `senders:` mapping block, required by the cardinality contract, was simply absent
 from the live config — two reports landed as `unknown`. There is still no durable source of truth for
 that mapping. A lane that depends on it verifies it is present before drawing conclusions.
 
@@ -78,7 +78,7 @@ Ownership is per-package, and these are the seams: `internal/sip` (listener), `i
 
 **Three exclusive resources. One lane at a time, named in the goal, and never two in a wave:**
 
-1. **The two live handsets and the Camden deployment.** Physical; a second lane placing calls
+1. **The two live handsets and the collector-host deployment.** Physical; a second lane placing calls
    invalidates the first lane's capture window.
 2. **The Grafana Cloud stack.** Writes to dashboards, rules or folders are mutations of a shared live
    system. Reads are unrestricted.
