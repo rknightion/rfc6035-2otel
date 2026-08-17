@@ -1,9 +1,9 @@
 ---
 id: doc-0003
-title: 'Closed work index (GitHub issues #2-#22)'
+title: Closed GitHub issues (pre-Backlog history index)
 type: other
 created_date: '2026-08-14 16:33'
-updated_date: '2026-08-14 16:59'
+updated_date: '2026-08-17 09:03'
 ---
 Every GitHub issue closed before the tracker migration on 2026-08-14 — Waves 1 through 3 and the
 release-repair issues between them. **17 closed issues, verified with `gh issue list --state closed
