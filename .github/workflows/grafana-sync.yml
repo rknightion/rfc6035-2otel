@@ -58,7 +58,7 @@ jobs:
       - name: Check out the GitSync repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: rknightion/gc-gitsync-m7kni
+          repository: m7kni/gc-gitsync-m7kni
           token: ${{ steps.bao.outputs.token }}
           path: gitsync
           persist-credentials: false
@@ -75,8 +75,8 @@ jobs:
           GITSYNC_TOKEN: ${{ steps.bao.outputs.token }}
         run: |
           set -euo pipefail
-          trap 'git remote set-url origin https://github.com/rknightion/gc-gitsync-m7kni.git' EXIT
-          git remote set-url origin "https://x-access-token:${GITSYNC_TOKEN}@github.com/rknightion/gc-gitsync-m7kni.git"
+          trap 'git remote set-url origin https://github.com/m7kni/gc-gitsync-m7kni.git' EXIT
+          git remote set-url origin "https://x-access-token:${GITSYNC_TOKEN}@github.com/m7kni/gc-gitsync-m7kni.git"
           git add networking/rfc6035-2otel.json
           if git diff --cached --quiet; then
             echo "dashboard already matches the stack source"
@@ -135,7 +135,7 @@ jobs:
       - name: Resolve the live GitSync identities
         id: gitsync
         env:
-          GITSYNC_REPOSITORY: https://github.com/rknightion/gc-gitsync-m7kni
+          GITSYNC_REPOSITORY: https://github.com/m7kni/gc-gitsync-m7kni
           GITSYNC_FOLDER_TITLE: networking
         run: |
           set -euo pipefail
