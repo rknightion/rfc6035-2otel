@@ -27,6 +27,12 @@ archives:
         formats: [zip]
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
+release:
+  draft: false
+  # Without this, RC tags (vX.Y.Z-rc.N) publish as full GitHub releases and steal
+  # "Latest" from the actual stable release. goreleaser marks any tag containing a
+  # hyphen as a prerelease automatically.
+  prerelease: auto
 snapshot:
   version_template: "{{ incpatch .Version }}-snapshot"
 sboms:
