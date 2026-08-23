@@ -27,6 +27,10 @@ Operations = [
   { Troubleshooting = "troubleshooting.md" },
 ]
 
+[assets]
+social_image = "assets/social-card.png"
+social_image_alt = "rfc6035-2otel documentation social preview card"
+
 [[social]]
 icon = "fontawesome/brands/github"
 link = "https://github.com/rknightion/rfc6035-2otel"
