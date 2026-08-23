@@ -1,6 +1,6 @@
 module github.com/rknightion/rfc6035-2otel
 
-go 1.26.5
+go 1.27.0
 
 require (
 	go.opentelemetry.io/otel v1.45.0
