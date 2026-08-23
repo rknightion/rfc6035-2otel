@@ -4,7 +4,7 @@ title: Upgrade Go toolchain to 1.27
 status: In Progress
 assignee: []
 created_date: '2026-08-23 19:06'
-updated_date: '2026-08-23 19:49'
+updated_date: '2026-08-23 20:21'
 labels: []
 dependencies: []
 ordinal: 2000
@@ -40,4 +40,6 @@ Adopt Go 1.27 consistently across the application, nested modules, build images,
 
 <!-- SECTION:NOTES:BEGIN -->
 Local Go 1.27.0 evidence: make check and golangci-lint run ./... passed. Final diff check passed. CodeRabbit was skipped because only declarative module and container toolchain pins changed. Hosted exact-head ci-success remains required for DoD 3.
+
+Exact-head CI run 32662554130 exposed stale Linux analysis tools: golangci-lint v2.12.2 and govulncheck v1.1.4 do not support the Go 1.27 syntax they analyze. CI now uses current golangci-lint v2.13.1 and govulncheck v1.3.0. Linux-target lint passed with 0 issues, v1.3.0 reported no vulnerabilities, and actionlint accepted the workflow. The failed run is retained as before-fix evidence.
 <!-- SECTION:NOTES:END -->
