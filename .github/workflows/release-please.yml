@@ -20,7 +20,7 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - id: bao
-        uses: rknightion/.github/.github/actions/broker-token@06d6727487515cd6628e01696af6f886f1421e04 # role input + token-mask hardening
+        uses: rknightion/.github/.github/actions/broker-token@bc58399e49a8d8131a379f530fffe8c9659667f9 # role input + token-mask hardening
         with:
           permission-set: release-please-rfc6035-2otel
           role: release-please-rfc6035-2otel
