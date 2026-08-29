@@ -10,7 +10,7 @@ The collector replies to valid reports with SIP `200 OK`; it rejects unsupported
 ## Quick start
 
 ```sh
-make build
+just build
 ./bin/rfc6035-2otel -version
 ```
 

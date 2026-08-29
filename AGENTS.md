@@ -8,20 +8,28 @@ An RFC 6035 SIP voice-quality (`vq-rtcpxr`) collector: it listens for SIP PUBLIS
 body in both the standard and the measured Poly pre-standard dialect, and exports OpenTelemetry
 metrics and logs.
 
-## The gate
+## Task interface
 
-```bash
-make check                # fmt-check vet test tidy-check grafana-check build
-golangci-lint run ./...   # CI runs this and `make check` does NOT — a green make is not a green CI
-```
+This repo's task surface is a `justfile`. Discover it, don't guess it:
 
-CI additionally runs `govulncheck ./...`, a 10s parser fuzz smoke, a GoReleaser snapshot build and a
-Docker image build. `ci-success` is the required check. Both gate commands are the tracker's
-`definition_of_done`, so every task inherits them.
+    just --list </dev/null                        # human-readable
+    just --dump --dump-format json </dev/null     # machine-readable
+    just --show <recipe> </dev/null               # what a recipe actually runs
+
+- `just check` is the full local gate and is exactly what CI's `build-test` job enforces
+  (`fmt-check`, `lint`, `vet`, `test`, `tidy-check`, `gen-check`, `build`, `vuln`, `fuzz`). It must
+  pass before you commit. It is the tracker's `definition_of_done`, so every task inherits it.
+- `just ci` is the sanctioned superset: it adds `snapshot` (cross-compilation) and `image` (a Docker
+  daemon) to `just check`. CI runs those two legs in separate parallel jobs.
+- Prefer `just <recipe>` over the underlying tool. For example, use `just lint` or `just gen-check`.
+- Run `just` with stdin from `/dev/null`. No recipe here is marked `[confirm]`, but if one is added
+  later, stop and ask before running it rather than passing `--yes`.
+- If a task you need does not exist, add a recipe with a `#` doc comment and a `[group(...)]` rather
+  than running a bare command.
 
 Generated artefacts are never hand-edited: `dashboards/`, `alerts/` and `spec/signal-catalog.json`
-come from the builders under `grafana/`. Edit the builder, then `make dashboard` / `make rules`.
-`make grafana-check` fails if the committed output does not match.
+come from the builders under `grafana/`. Edit the builder, then `just gen`. `just gen-check` fails if
+the committed output does not match.
 
 ## Task tracking
 

@@ -6,14 +6,17 @@ raw-detail logs.
 
 ## Development
 
-Requires the Go version declared by `go.mod`. The local acceptance command is:
+Requires the Go version declared by `go.mod` and `just` (https://just.systems). The local acceptance
+command is:
 
 ```sh
-make check
+just check
 ```
 
-It runs formatting, vet, race-enabled tests, module-tidiness verification, and a binary
-build. `make build` writes `bin/rfc6035-2otel`; `make test` runs the race detector.
+It runs formatting, linting, vet, race-enabled tests, module-tidiness verification, generated-artefact
+drift checks, a binary build, dependency vulnerability scanning, and the parser fuzz smoke. `just
+build` writes `bin/rfc6035-2otel`; `just test` runs the race detector (pass `filter="TestName"` to
+narrow it). Run `just --list` for the full task surface.
 
 ## Changes
 

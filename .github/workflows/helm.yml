@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - "charts/**"
+      - "justfile"
       - ".github/workflows/helm.yml"
   pull_request:
 permissions:
@@ -21,12 +22,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
-      - run: helm lint "$CHART_DIR"
-      - run: helm template rfc6035-2otel "$CHART_DIR" > /dev/null
-      - run: |
-          make helm-docs
-          git diff --exit-code "$CHART_DIR/README.md"
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+        with:
+          just-version: "1.58.0"
+      - run: just helm-lint </dev/null
+      - run: just helm-docs-check </dev/null
   # This chart published to GHCR with no schema validation against the real
   # Kubernetes API schemas at all — `lint-template` above only ran helm's own
   # lint plus a bare template render, never a kubeconform check. No kubeVersion

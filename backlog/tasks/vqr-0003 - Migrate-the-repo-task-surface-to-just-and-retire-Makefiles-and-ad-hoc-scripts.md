@@ -1,10 +1,11 @@
 ---
 id: VQR-0003
 title: Migrate the repo task surface to just and retire Makefiles and ad-hoc scripts
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@codex'
 created_date: '2026-08-28 19:28'
-updated_date: '2026-08-29 11:20'
+updated_date: '2026-08-29 14:30'
 labels:
   - 'wave:2-fleet'
 dependencies: []
@@ -521,24 +522,29 @@ deletion in step 10 is strictly last.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A top-level justfile exists at the repo root defining all seven mandatory recipes (default, setup, fmt, fmt-check, lint, test, check) plus gen, gen-check, audit, fuzz, build-snapshot, image, ci, helm-lint, helm-docs, helm-docs-check, clean
-- [ ] #2 just check runs fmt-check, lint, vet, test, tidy-check, gen-check and build, and is exactly what .github/workflows/ci.yml's build-test job runs
+- [ ] #1 A top-level justfile exists at the repo root defining all seven mandatory recipes (default, setup, fmt, fmt-check, lint, test, check) plus gen, gen-check, vuln, fuzz, snapshot, image, ci, helm-lint, helm-docs, helm-docs-check, clean
+- [ ] #2 just check runs fmt-check, lint, vet, test, tidy-check, gen-check, build, vuln, and fuzz, and .github/workflows/ci.yml build-test runs exactly just check
 - [ ] #3 just --fmt --check passes with no diff
-- [ ] #4 just --list shows a doc comment and a [group(...)] for every public recipe
-- [ ] #5 Makefile is deleted (git rm), with no remaining reference to make in AGENTS.md, CONTRIBUTING.md, README.md, or any workflow
+- [ ] #4 just --list shows a doc comment for every public recipe and a [group(...)] for every public recipe except the ungrouped default and setup recipes
+- [ ] #5 Makefile is deleted (git rm), with no remaining reference to make in AGENTS.md, CONTRIBUTING.md, README.md, docs, or any workflow
 - [ ] #6 grafana/build_dashboard.py, grafana/build_rules.py, scripts/grafana-prune-rules.py, scripts/grafana-verify-rules.py, and scripts/verify-gitsync.py all still exist as files; the first two are reachable via just gen/just gen-check, the last three remain invoked only by grafana-sync.yml and by no just recipe
-- [ ] #7 .github/workflows/ci.yml's build-test, govulncheck and fuzz jobs call just check / just audit / just fuzz respectively via a setup-just step, while its lint, goreleaser-snapshot and docker-build jobs keep their existing Actions unchanged, and ci-success still gates on the same needs list
-- [ ] #8 .github/workflows/helm.yml's lint-template job calls just helm-lint and just helm-docs-check via added setup-go and setup-just steps, and helm-success still gates on lint-template
-- [ ] #9 AGENTS.md's gate section is replaced with the Task interface contract naming just check as the definition_of_done, and CONTRIBUTING.md/README.md no longer mention make
-- [ ] #10 backlog/config.yml's definition_of_done lists "just check" instead of "make check" and "golangci-lint run ./..."
+- [ ] #7 .github/workflows/ci.yml build-test, govulncheck, and fuzz jobs call just check / just vuln / just fuzz via setup-just; lint, goreleaser-snapshot, and docker-build retain their action-backed implementation; ci-success retains its existing needs list
+- [ ] #8 .github/workflows/helm.yml lint-template calls just helm-lint and just helm-docs-check via added setup-go and setup-just steps, while helm-success still gates on lint-template and preserves helm-schema-validate
+- [ ] #9 AGENTS.md gate section is replaced with the Task interface contract naming just check as the definition_of_done, and CONTRIBUTING.md/README.md no longer mention make
+- [ ] #10 backlog/config.yml definition_of_done lists just check instead of make check and golangci-lint run ./...
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 make check
-- [ ] #2 golangci-lint run ./...
-- [ ] #3 gh run list --branch main --limit 1 shows ci-success green at the exact pushed SHA
+- [ ] #1 gh run list --branch main --limit 1 shows ci-success green at the exact pushed SHA
+- [ ] #2 just check
 <!-- DOD:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Ratified task comments supersede the original audit/build-snapshot names: the implemented public recipes are vuln and snapshot. Added renovate annotations plus a justfile regex manager, and raised GoReleaser from v2.16.0 to v2.18.0 after v2.16.0 failed to compile under Go 1.27; v2.18.0 completed the snapshot locally.
+<!-- SECTION:NOTES:END -->
 
 ## Comments
 

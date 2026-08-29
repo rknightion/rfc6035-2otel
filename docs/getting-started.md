@@ -17,7 +17,7 @@ they must be a small, explicit registry.
 Build and inspect the version:
 
 ```sh
-make build
+just build
 ./bin/rfc6035-2otel --version
 ```
 
