@@ -1,11 +1,11 @@
 ---
 id: VQR-0003
 title: Migrate the repo task surface to just and retire Makefiles and ad-hoc scripts
-status: In Progress
+status: Done
 assignee:
   - '@codex'
 created_date: '2026-08-28 19:28'
-updated_date: '2026-08-29 14:30'
+updated_date: '2026-08-29 14:42'
 labels:
   - 'wave:2-fleet'
 dependencies: []
@@ -522,28 +522,30 @@ deletion in step 10 is strictly last.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A top-level justfile exists at the repo root defining all seven mandatory recipes (default, setup, fmt, fmt-check, lint, test, check) plus gen, gen-check, vuln, fuzz, snapshot, image, ci, helm-lint, helm-docs, helm-docs-check, clean
-- [ ] #2 just check runs fmt-check, lint, vet, test, tidy-check, gen-check, build, vuln, and fuzz, and .github/workflows/ci.yml build-test runs exactly just check
-- [ ] #3 just --fmt --check passes with no diff
-- [ ] #4 just --list shows a doc comment for every public recipe and a [group(...)] for every public recipe except the ungrouped default and setup recipes
-- [ ] #5 Makefile is deleted (git rm), with no remaining reference to make in AGENTS.md, CONTRIBUTING.md, README.md, docs, or any workflow
-- [ ] #6 grafana/build_dashboard.py, grafana/build_rules.py, scripts/grafana-prune-rules.py, scripts/grafana-verify-rules.py, and scripts/verify-gitsync.py all still exist as files; the first two are reachable via just gen/just gen-check, the last three remain invoked only by grafana-sync.yml and by no just recipe
-- [ ] #7 .github/workflows/ci.yml build-test, govulncheck, and fuzz jobs call just check / just vuln / just fuzz via setup-just; lint, goreleaser-snapshot, and docker-build retain their action-backed implementation; ci-success retains its existing needs list
-- [ ] #8 .github/workflows/helm.yml lint-template calls just helm-lint and just helm-docs-check via added setup-go and setup-just steps, while helm-success still gates on lint-template and preserves helm-schema-validate
-- [ ] #9 AGENTS.md gate section is replaced with the Task interface contract naming just check as the definition_of_done, and CONTRIBUTING.md/README.md no longer mention make
-- [ ] #10 backlog/config.yml definition_of_done lists just check instead of make check and golangci-lint run ./...
+- [x] #1 A top-level justfile exists at the repo root defining all seven mandatory recipes (default, setup, fmt, fmt-check, lint, test, check) plus gen, gen-check, vuln, fuzz, snapshot, image, ci, helm-lint, helm-docs, helm-docs-check, clean
+- [x] #2 just check runs fmt-check, lint, vet, test, tidy-check, gen-check, build, vuln, and fuzz, and .github/workflows/ci.yml build-test runs exactly just check
+- [x] #3 just --fmt --check passes with no diff
+- [x] #4 just --list shows a doc comment for every public recipe and a [group(...)] for every public recipe except the ungrouped default and setup recipes
+- [x] #5 Makefile is deleted (git rm), with no remaining reference to make in AGENTS.md, CONTRIBUTING.md, README.md, docs, or any workflow
+- [x] #6 grafana/build_dashboard.py, grafana/build_rules.py, scripts/grafana-prune-rules.py, scripts/grafana-verify-rules.py, and scripts/verify-gitsync.py all still exist as files; the first two are reachable via just gen/just gen-check, the last three remain invoked only by grafana-sync.yml and by no just recipe
+- [x] #7 .github/workflows/ci.yml build-test, govulncheck, and fuzz jobs call just check / just vuln / just fuzz via setup-just; lint, goreleaser-snapshot, and docker-build retain their action-backed implementation; ci-success retains its existing needs list
+- [x] #8 .github/workflows/helm.yml lint-template calls just helm-lint and just helm-docs-check via added setup-go and setup-just steps, while helm-success still gates on lint-template and preserves helm-schema-validate
+- [x] #9 AGENTS.md gate section is replaced with the Task interface contract naming just check as the definition_of_done, and CONTRIBUTING.md/README.md no longer mention make
+- [x] #10 backlog/config.yml definition_of_done lists just check instead of make check and golangci-lint run ./...
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 gh run list --branch main --limit 1 shows ci-success green at the exact pushed SHA
-- [ ] #2 just check
+- [x] #1 gh run list --branch main --limit 1 shows ci-success green at the exact pushed SHA
+- [x] #2 just check
 <!-- DOD:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Ratified task comments supersede the original audit/build-snapshot names: the implemented public recipes are vuln and snapshot. Added renovate annotations plus a justfile regex manager, and raised GoReleaser from v2.16.0 to v2.18.0 after v2.16.0 failed to compile under Go 1.27; v2.18.0 completed the snapshot locally.
+
+Validation passed: just --fmt --check; just --dump --dump-format json; isolated just check; just ci (including GoReleaser snapshot and Docker image); just helm-lint; just helm-docs-check; actionlint; and Renovate config validation. A completed CodeRabbit review produced five findings, all fixed and revalidated; the follow-up review was rate-limited. CI run 33258154498 completed successfully at f8b435e773b296fa87eefd735d1a9fe5de557f3b, with ci-success green and Helm green.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
@@ -651,3 +653,9 @@ Treat "the pin is now managed" as **false unless you have done both and checked*
 Credit: caught by the `tailscale2otel` lane on its closeout, against the claim as originally written here.
 ---
 <!-- COMMENTS:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Replaced the Makefile task surface with a formatted, grouped justfile; routed CI and Helm task commands through pinned Just setup; preserved reusable workflows and deploy scripts; and aligned local/CI GoReleaser at v2.18.0. Verified by the local gates, workflow/config validators, and exact-SHA green CI run 33258154498.
+<!-- SECTION:FINAL_SUMMARY:END -->
