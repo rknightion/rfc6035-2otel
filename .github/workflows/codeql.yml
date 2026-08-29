@@ -12,6 +12,6 @@ jobs:
       packages: read # permits analysis of package metadata
       actions: read # reads workflow metadata for Actions analysis
       contents: read # checks out and analyzes repository source
-    uses: rknightion/.github/.github/workflows/codeql.yml@9c3981da69a2aa4eecd99e5740335219fd8c6a00 # v1.9.10
+    uses: rknightion/.github/.github/workflows/codeql.yml@99a633c653561f10ef871cac2f3b2e3aad13bb5f # v1.10.1
     with:
       languages: '[{"language":"go","build-mode":"autobuild"},{"language":"actions","build-mode":"none"}]'
