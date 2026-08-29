@@ -27,11 +27,25 @@ jobs:
       - run: |
           make helm-docs
           git diff --exit-code "$CHART_DIR/README.md"
+  # This chart published to GHCR with no schema validation against the real
+  # Kubernetes API schemas at all — `lint-template` above only ran helm's own
+  # lint plus a bare template render, never a kubeconform check. No kubeVersion
+  # floor is declared in Chart.yaml, so this validates against the reusable's
+  # own default floor (1.29.0). No named `helm template` variant exists
+  # anywhere in this repo, so only the bare default render is validated.
+  helm-schema-validate:
+    name: helm schema validate (kubeconform)
+    permissions:
+      contents: read
+    uses: rknightion/.github/.github/workflows/helm-validate.yml@97f4a7ad0cd1ddd83562a30b9061ef8295242405 # v1.14.0
+    with:
+      chart-path: charts/rfc6035-2otel
+      kubernetes-versions: "1.29.0"
   helm-success:
     name: Helm gate
     runs-on: ubuntu-latest
     if: always()
-    needs: [lint-template]
+    needs: [lint-template, helm-schema-validate]
     steps:
       - if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
         run: exit 1
