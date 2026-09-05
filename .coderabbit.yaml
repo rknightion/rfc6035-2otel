@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Product-specific additions to the central CodeRabbit defaults.
+# Keep inheritance enabled; shared review policy lives in the owner/coderabbit repository.
+inheritance: true
+reviews:
+  path_filters:
+  - '!dashboards/**'
+  - '!alerts/**'
+  - '!spec/signal-catalog.json'
+  path_instructions:
+  - path: internal/**/*.go
+    instructions: >-
+      Review as an RFC 6035 SIP PUBLISH collector, not a generic RTCP-XR receiver. Preserve standards-appropriate
+      SIP responses and SIP-ETag behaviour. UDP retransmissions dedupe by Call-ID plus CSeq within the
+      configured window so completed-call histograms are observed once. Support both documented body dialects
+      without silently accepting unrelated media-plane packets.
+  - path: internal/otelexport/**/*.go
+    instructions: >-
+      Check wire-to-signal conversions exactly: percentages become fractions, milliseconds become seconds,
+      and present call-quality values become synchronous histogram observations. Missing MOS, loss, delay
+      or jitter fields produce no observation, never zero. Sender metric cardinality is configured names
+      plus one unknown bucket; call IDs, SIP identities, addresses and parsed fields stay in logs rather
+      than metric labels.
+  - path: grafana/**/*.py
+    instructions: >-
+      Treat docs/signals.md and the source signal catalog as the public contract. Keep generated dashboards
+      and rules aligned with OTLP-to-Prometheus normalization, bounded attributes and absent-field semantics.
