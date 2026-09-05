@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/rknightion/rfc6035-2otel/compare/v0.2.0...v0.2.1) (2026-09-05)
+
+
+### Bug Fixes
+
+* **ci:** repin rknightion/.github refs to v1.9.7 so Renovate can track them ([c8ccc82](https://github.com/rknightion/rfc6035-2otel/commit/c8ccc82098344aa61b8e8dcfeab88e2f9064f9ce))
+* declare docs social card ([010bf6a](https://github.com/rknightion/rfc6035-2otel/commit/010bf6a4ff66955f92619bb293b49758de197895))
+
 ## [0.2.0](https://github.com/rknightion/rfc6035-2otel/compare/v0.1.1...v0.2.0) (2026-08-13)
 
 
