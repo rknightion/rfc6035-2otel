@@ -1,87 +1,67 @@
-# rfc6035-2otel — contributor and agent instructions
-
-Claude Code and Codex both read this file; `CLAUDE.md` is a one-line import of it, so the two cannot
-drift apart. Everything below the tool-managed marker block at the end is hand-written and survives
-`backlog init` re-runs.
+# rfc6035-2otel
 
 An RFC 6035 SIP voice-quality (`vq-rtcpxr`) collector: it listens for SIP PUBLISH, parses the report
-body in both the standard and the measured Poly pre-standard dialect, and exports OpenTelemetry
-metrics and logs.
+body in both the standard dialect and the measured Poly pre-standard dialect, and exports
+OpenTelemetry metrics and logs.
 
 ## Task interface
 
-This repo's task surface is a `justfile`. Discover it, don't guess it:
+`just check` is the gate: `fmt-check`, `lint`, `vet`, `test`, `tidy-check`, `gen-check`, `build`,
+`vuln`, `fuzz`. It is CI's `build-test` job verbatim and the tracker's `definition_of_done`, so every
+task inherits it. `just ci` is the sanctioned superset, adding `snapshot` (cross-compilation) and
+`image` (a Docker daemon); CI runs those two in separate parallel jobs.
 
-    just --list </dev/null                        # human-readable
-    just --dump --dump-format json </dev/null     # machine-readable
-    just --show <recipe> </dev/null               # what a recipe actually runs
+Run `just` with stdin from `/dev/null`. No recipe is marked `[confirm]`.
 
-- `just check` is the full local gate and is exactly what CI's `build-test` job enforces
-  (`fmt-check`, `lint`, `vet`, `test`, `tidy-check`, `gen-check`, `build`, `vuln`, `fuzz`). It must
-  pass before you commit. It is the tracker's `definition_of_done`, so every task inherits it.
-- `just ci` is the sanctioned superset: it adds `snapshot` (cross-compilation) and `image` (a Docker
-  daemon) to `just check`. CI runs those two legs in separate parallel jobs.
-- Prefer `just <recipe>` over the underlying tool. For example, use `just lint` or `just gen-check`.
-- Run `just` with stdin from `/dev/null`. No recipe here is marked `[confirm]`, but if one is added
-  later, stop and ask before running it rather than passing `--yes`.
-- If a task you need does not exist, add a recipe with a `#` doc comment and a `[group(...)]` rather
-  than running a bare command.
+`dashboards/` and `alerts/` are generated from the builders under `grafana/` and are never
+hand-edited, and so is the region between `<!-- BEGIN/END GENERATED SIGNAL CATALOG -->` in
+`docs/signals.md`. `spec/signal-catalog.json` is the hand-maintained **input** those builders read:
+edit the catalogue or the builder, then `just gen`. `just gen-check` fails on committed drift.
 
-Generated artefacts are never hand-edited: `dashboards/`, `alerts/` and `spec/signal-catalog.json`
-come from the builders under `grafana/`. Edit the builder, then `just gen`. `just gen-check` fails if
-the committed output does not match.
+## Tracker
 
-## Task tracking
+Tasks are `VQR-NNNN` in `backlog/`. Read the **Agent fan-out protocol (canonical)** doc before
+designing a wave, and the **Wave operating model** doc for this repo's own rules - its frozen
+contracts, its recurring defects, its exclusive resources and its ownership escape hatch. The
+**Closed GitHub issues (pre-Backlog history index)** doc maps each pre-migration issue to its
+resulting SHA; closed issues were deliberately not re-imported as tasks.
 
-Open work lives in Backlog.md, in `backlog/`, committed to git. The queue is a query, not a file:
-
-```bash
-backlog task list --plain          # what is left
-backlog doc list --plain           # the durable docs
-backlog task view VQR-0001 --plain # a task's own contract, including its acceptance criteria
-```
-
-Read the **fan-out protocol** doc before designing a wave, and the **Wave operating model** doc for
-this project's own rules — its frozen contracts, its recurring defects, its exclusive resources and
-its ownership escape hatch. The **closed work index** doc maps every pre-migration GitHub issue
-(#2–#22) to its resulting SHA; closed issues were deliberately not re-imported as tasks.
+`backlog task view VQR-0001 --plain` prints a task's own contract including its acceptance criteria.
 
 ### Rules with no exceptions
 
-**`backlog/` is committed to git, so tasks and docs must never contain real account identifiers or
-personal data** — no phone numbers, SIP URIs, MAC addresses, host or handset names, lab IP addresses,
-handset serials, Grafana stack hostnames or ids, tenant or account IDs, credentials, or capture
-payloads containing them. Write the shape, not the instance: "the second handset", "the collector
-host", `<dialect>/<sender>/<report>`. Aggregate counts, timings, metric names, CI run ids, commit
-SHAs and structural findings are fine, and so are SIP `Call-ID` values — they are per-call hashes
-that identify nothing.
+**`backlog/` is committed to a public repository**, so no real account identifier or personal data
+goes in a task or doc: no phone numbers, SIP URIs, MAC addresses, host or handset names, lab IP
+addresses, handset serials, Grafana stack hostnames or ids, tenant or account IDs, credentials, or
+capture payloads containing any of those. Write the shape, not the instance: "the second handset",
+"the collector host", `<dialect>/<sender>/<report>`. Aggregate counts, timings, metric names, CI run
+ids, commit SHAs and structural findings are fine, and so are SIP `Call-ID` values - they are
+per-call hashes that identify nothing.
 
-The same placeholder vocabulary as `archive/README.md` applies, so the two agree: `HOST-A`,
-`PHONE-A`, `PHONE-B` — that table says what each denotes without naming it, which is why the pattern
-below matches address and hostname *shapes* rather than listing the real names. Deliberately so:
-a sweep that spells out the identifiers it is hunting for plants them permanently in a tracked file,
-which is the leak it exists to prevent. The host and handset names are the one class you must check
-by eye.
+Use the same placeholder vocabulary as `archive/README.md` (`HOST-A`, `PHONE-A`, `PHONE-B`), so the
+two agree. The sweep below matches address and hostname *shapes* rather than listing the real names
+deliberately: a sweep that spells out the identifiers it hunts for plants them permanently in a
+tracked file, which is the leak it exists to prevent. Host and handset names are the one class you
+must check by eye.
 
 ```bash
 grep -rniE '10\.0\.[0-9]|100\.(6[4-9]|[7-9][0-9])\.|grafana\.[a-z0-9-]+\.(com|net)|@gmail|sip:[0-9]{6,}|([0-9a-f]{2}:){5}[0-9a-f]{2}' backlog/ \
   && echo "REVIEW EACH HIT"
 ```
 
-**Never use `--notes` or `--plan` bare.** They *silently replace* the whole section — another
-session's writes vanish with no warning at exit 0. Use `--append-notes` and `--append-plan`. This is
-an open upstream bug, not a misunderstanding, and a global `PreToolUse` hook in the agent config denies the bare
-form rather than trusting anyone to remember.
+**Never use `--notes` or `--plan` bare.** They *silently replace* the whole section - another
+session's writes vanish with no warning at exit 0. Use `--append-notes` and `--append-plan`. A
+`PreToolUse` hook denies the bare form rather than trusting anyone to remember.
 
 **Never hand-edit task, draft, doc, decision or milestone markdown.** Section boundaries are
 HTML-comment markers; break one and the section is *silently dropped* at exit 0, with the data still
-in the file but invisible until the next write destroys it for real. There is no repair command —
+in the file but invisible until the next write destroys it for real. There is no repair command -
 `backlog doctor` only fixes duplicate task IDs. The same hook denies these edits.
 `backlog/config.yml` is the one exception and is edited by hand, because list-valued keys cannot be
 set through `backlog config set`.
 
-**Never let two agents edit the same task.** v1.50.x fixed the edit funnel, but not reorder, draft
-saves, the TUI path, `doc update` or decision updates.
+**Never let two agents edit the same task.** v1.50.x fixed the `task edit` funnel, but not reorder,
+draft saves, the TUI path, `doc update` or decision updates.
 
 **Finalize in one call**, so an interrupted agent cannot leave finished work looking unfinished:
 
@@ -92,15 +72,14 @@ backlog task edit VQR-0001 --check-ac 1 --check-ac 2 -s Done
 The shipped guides check criteria at one step and set status several steps later; a context limit
 between the two leaves the task inconsistent.
 
-**Do not build a workflow on `decisions`** — half-built upstream, with no `edit`, `view` or supersede
-mechanism. Durable reference goes in docs; tasks are the unit.
+**Do not build a workflow on `backlog decision`** - half-built upstream, with no `edit`, `view` or
+supersede mechanism. Durable reference goes in docs; tasks are the unit.
 
-### Git
+## Git
 
-This is `rknightion/rfc6035-2otel`, not a fork: completed work is committed and pushed straight to
-`main`. Never `git add -A` or `git commit -a` in a checkout carrying changes that are not yours —
-stage explicit pathspecs. `codex/` and `docs/superpowers/` are gitignored run scaffolding and never
-enter history.
+Stage explicit pathspecs. Never `git add -A` or `git commit -a` in a checkout carrying changes that
+are not yours - parallel lanes share this working tree. `codex/` and `docs/superpowers/` are ignored
+run scaffolding and never enter history.
 
 <!-- BACKLOG.MD GUIDELINES START -->
 <!-- backlog.md-instructions-version: 1.50.1 -->
