@@ -75,6 +75,9 @@ between the two leaves the task inconsistent.
 **Do not build a workflow on `backlog decision`** - half-built upstream, with no `edit`, `view` or
 supersede mechanism. Durable reference goes in docs; tasks are the unit.
 
+The `<!-- BACKLOG.MD GUIDELINES -->` block at the foot of this file is written by `backlog init` and
+silently returns if deleted. Everything above it is hand-written and survives a re-run.
+
 ## Git
 
 Stage explicit pathspecs. Never `git add -A` or `git commit -a` in a checkout carrying changes that
