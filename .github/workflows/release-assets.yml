@@ -16,7 +16,7 @@ jobs:
       id-token: write # obtains keyless signing credentials
       packages: write # supports reusable release tooling package access
       attestations: write # publishes provenance attestations
-    uses: rknightion/.github/.github/workflows/binaries.yml@27b0bd31dbe7bf238b89773d00d60ed5dfe187bb # v1.20.0
+    uses: rknightion/.github/.github/workflows/binaries.yml@81fc55183265da0b21e92e690f70d679b20ed822 # v1.21.0
     with:
       release-tag: ${{ inputs.release_tag }}
       install-cosign: true
