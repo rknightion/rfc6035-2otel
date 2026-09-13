@@ -25,3 +25,10 @@ reviews:
     instructions: >-
       Treat docs/signals.md and the source signal catalog as the public contract. Keep generated dashboards
       and rules aligned with OTLP-to-Prometheus normalization, bounded attributes and absent-field semantics.
+knowledge_base:
+  linked_repositories:
+  - repository: m7kni/m7kni-net-site
+    instructions: >-
+      Documentation hub. This repository dispatches documentation changes to the hub, which clones the
+      docs source and builds it. Check docs_path, config_file and the dispatch payload against this
+      repository's entry in the hub's docs-repos.json manifest.
