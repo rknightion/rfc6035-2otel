@@ -35,9 +35,3 @@ social_image_alt = "rfc6035-2otel documentation social preview card"
 icon = "fontawesome/brands/github"
 link = "https://github.com/rknightion/rfc6035-2otel"
 name = "GitHub Repository"
-[backlog]
-enabled = true
-title = "Backlog"
-include_completed = true
-include_docs = true
-include_decisions = true
