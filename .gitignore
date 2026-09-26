@@ -33,3 +33,6 @@ config.yaml
 
 # stray root build output
 /rfc6035-2otel
+
+# Machine-local agent artefacts, never committed
+docs/superpowers/
