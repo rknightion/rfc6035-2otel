@@ -20,7 +20,7 @@ edit the catalogue or the builder, then `just gen`. `just gen-check` fails on co
 
 ## Tracker
 
-Tasks are `VQR-NNNN` in `backlog/`. Read the **Agent fan-out protocol (canonical)** doc before
+Tasks are `VQR-NNNN` in `backlog/`. Read `~/repos/agent-docs/sources/loop/planner.md` before
 designing a wave, and the **Wave operating model** doc for this repo's own rules - its frozen
 contracts, its recurring defects, its exclusive resources and its ownership escape hatch. The
 **Closed GitHub issues (pre-Backlog history index)** doc maps each pre-migration issue to its

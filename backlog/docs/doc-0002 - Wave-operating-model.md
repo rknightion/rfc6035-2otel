@@ -6,7 +6,7 @@ created_date: '2026-08-14 16:31'
 updated_date: '2026-08-14 17:01'
 ---
 This project's own campaign rules. The model itself — run contract, routing, lane briefs, goal-file
-template, pre-flight checklist — is the fan-out protocol doc, and nothing here restates it. If a
+template, pre-flight checklist - is in `~/repos/agent-docs/sources/loop/contract.md` and `~/repos/agent-docs/sources/loop/planner.md`, and nothing here restates it. If a
 section below could be pasted into another repo unchanged, it is in the wrong document.
 
 ## Rules this project added, each with the failure that caused it
