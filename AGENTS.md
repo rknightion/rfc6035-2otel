@@ -49,40 +49,12 @@ grep -rniE '10\.0\.[0-9]|100\.(6[4-9]|[7-9][0-9])\.|grafana\.[a-z0-9-]+\.(com|ne
   && echo "REVIEW EACH HIT"
 ```
 
-**Never use `--notes` or `--plan` bare.** They *silently replace* the whole section - another
-session's writes vanish with no warning at exit 0. Use `--append-notes` and `--append-plan`. A
-`PreToolUse` hook denies the bare form rather than trusting anyone to remember.
-
-**Never hand-edit task, draft, doc, decision or milestone markdown.** Section boundaries are
-HTML-comment markers; break one and the section is *silently dropped* at exit 0, with the data still
-in the file but invisible until the next write destroys it for real. There is no repair command -
-`backlog doctor` only fixes duplicate task IDs. The same hook denies these edits.
-`backlog/config.yml` is the one exception and is edited by hand, because list-valued keys cannot be
-set through `backlog config set`.
-
-**Never let two agents edit the same task.** v1.50.x fixed the `task edit` funnel, but not reorder,
-draft saves, the TUI path, `doc update` or decision updates.
-
-**Finalize in one call**, so an interrupted agent cannot leave finished work looking unfinished:
-
-```bash
-backlog task edit VQR-0001 --check-ac 1 --check-ac 2 -s Done
-```
-
-The shipped guides check criteria at one step and set status several steps later; a context limit
-between the two leaves the task inconsistent.
-
 **Do not build a workflow on `backlog decision`** - half-built upstream, with no `edit`, `view` or
 supersede mechanism. Durable reference goes in docs; tasks are the unit.
 
-The `<!-- BACKLOG.MD GUIDELINES -->` block at the foot of this file is written by `backlog init` and
-silently returns if deleted. Everything above it is hand-written and survives a re-run.
-
 ## Git
 
-Stage explicit pathspecs. Never `git add -A` or `git commit -a` in a checkout carrying changes that
-are not yours - parallel lanes share this working tree. `codex/` and `docs/superpowers/` are ignored
-run scaffolding and never enter history.
+`codex/` and `docs/superpowers/` are ignored run scaffolding and never enter history.
 
 <!-- BACKLOG.MD GUIDELINES START -->
 <!-- backlog.md-instructions-version: 1.50.1 -->
