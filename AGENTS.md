@@ -20,10 +20,11 @@ edit the catalogue or the builder, then `just gen`. `just gen-check` fails on co
 
 ## Tracker
 
-Tasks are `VQR-NNNN` in `backlog/`. Read `~/repos/agent-docs/sources/loop/planner.md` before
-designing a wave, and the **Wave operating model** doc for this repo's own rules - its frozen
-contracts, its recurring defects, its exclusive resources and its ownership escape hatch. The
-**Closed GitHub issues (pre-Backlog history index)** doc maps each pre-migration issue to its
+Tasks are `VQR-NNNN` in `backlog/`.
+
+Loops: the protocol lives in `~/repos/agent-docs/sources/loop/` (this board's "Loop protocol pointer" doc points there); this repository's loop facts are in `LOOP.md`.
+
+The **Closed GitHub issues (pre-Backlog history index)** doc maps each pre-migration issue to its
 resulting SHA; closed issues were deliberately not re-imported as tasks.
 
 `backlog task view VQR-0001 --plain` prints a task's own contract including its acceptance criteria.
