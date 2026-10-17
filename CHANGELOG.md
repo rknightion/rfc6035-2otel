@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/rknightion/rfc6035-2otel/compare/v0.2.0...v0.2.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* **ci:** repin rknightion/.github refs to v1.9.7 so Renovate can track them ([c8ccc82](https://github.com/rknightion/rfc6035-2otel/commit/c8ccc82098344aa61b8e8dcfeab88e2f9064f9ce))
+* declare docs social card ([010bf6a](https://github.com/rknightion/rfc6035-2otel/commit/010bf6a4ff66955f92619bb293b49758de197895))
+* **deps:** Go 1.27.2, golang.org/x/net v0.60.0 and golangci-lint v2.14.0 for the stdlib and HTTP/2 fixes ([24bffac](https://github.com/rknightion/rfc6035-2otel/commit/24bffac16ec84f4f9d7941b651f0d9c191011123))
+
 ## [0.2.0](https://github.com/rknightion/rfc6035-2otel/compare/v0.1.1...v0.2.0) (2026-08-13)
 
 
