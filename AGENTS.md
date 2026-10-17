@@ -18,6 +18,10 @@ hand-edited, and so is the region between `<!-- BEGIN/END GENERATED SIGNAL CATAL
 `docs/signals.md`. `spec/signal-catalog.json` is the hand-maintained **input** those builders read:
 edit the catalogue or the builder, then `just gen`. `just gen-check` fails on committed drift.
 
+Off the Mac, when the remote gate runner is installed (`which gaterun`): `gaterun -- just ci` (or
+`just check`), paced across lanes with `gaterun-slot <lane> -- gaterun -- just ci`; `.gaterunner.yaml`
+is its contract. Run one test or package locally.
+
 ## Tracker
 
 Tasks are `VQR-NNNN` in `backlog/`.
