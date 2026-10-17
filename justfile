@@ -9,7 +9,7 @@ chart_dir := "charts/rfc6035-2otel"
 
 # Keep this aligned with the version in .github/workflows/ci.yml's lint job.
 # renovate: datasource=go depName=github.com/golangci/golangci-lint/v2
-golangci_lint_version := "v2.13.2"
+golangci_lint_version := "v2.14.0"
 # renovate: datasource=go depName=github.com/norwoodj/helm-docs
 helm_docs_version := "v1.14.2"
 # Keep this aligned with the vulnerability job in .github/workflows/ci.yml.
