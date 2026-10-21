@@ -46,7 +46,7 @@ jobs:
       id-token: write # obtains keyless signing credentials
       attestations: write # publishes provenance attestations
       security-events: write # uploads container scan results
-    uses: rknightion/.github/.github/workflows/container-publish.yml@ca86dc7c1901c83e64deef48ee2811fa569e8c28 # v1.25.14
+    uses: rknightion/.github/.github/workflows/container-publish.yml@2f92fb6f256e55936a3b08ec5e891edc6a2d110e # v1.25.15
     with:
       release-tag: ${{ inputs.release_tag }}
       dockerfile: Dockerfile
