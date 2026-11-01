@@ -35,6 +35,9 @@ ALERTS = (
         "category": "export",
         "lookback": "15m",
         "threshold": 0,
+        # Network blips (switch firmware reboots) cause bursts; the 15m count plus a
+        # 20m hold needs failures to persist past one window before firing.
+        "for": "20m",
     },
     {
         "filename": "rfc6035-2otel-unknown-sender-reports.json",
@@ -181,7 +184,7 @@ def _resource(alert: dict, query: str) -> dict:
         "spec": {
             "title": alert["title"],
             "trigger": {"interval": "1m"},
-            "for": "5m",
+            "for": alert.get("for", "5m"),
             "paused": False,
             "noDataState": "Ok",
             "execErrState": "Error",

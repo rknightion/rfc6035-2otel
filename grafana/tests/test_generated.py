@@ -209,7 +209,8 @@ class GeneratedArtefactTests(unittest.TestCase):
             )
             spec = resource["spec"]
             self.assertEqual(spec["trigger"], {"interval": "1m"})
-            self.assertEqual(spec["for"], "5m")
+            expected_for = "20m" if filename == "rfc6035-2otel-export-failures.json" else "5m"
+            self.assertEqual(spec["for"], expected_for)
             self.assertEqual(spec["noDataState"], "Ok")
             self.assertEqual(spec["execErrState"], "Error")
             self.assertFalse(spec["paused"])

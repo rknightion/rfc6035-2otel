@@ -76,7 +76,7 @@
         "source": true
       }
     },
-    "for": "5m",
+    "for": "20m",
     "labels": {
       "category": "export",
       "domain": "observability",
