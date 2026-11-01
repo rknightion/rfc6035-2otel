@@ -217,6 +217,7 @@ class GeneratedArtefactTests(unittest.TestCase):
                 spec["labels"],
                 {
                     "category": category,
+                    "domain": "observability",
                     "pipeline": "rfc6035-2otel",
                     "service": "rfc6035-2otel",
                     "severity": "warning",

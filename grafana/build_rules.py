@@ -187,6 +187,7 @@ def _resource(alert: dict, query: str) -> dict:
             "execErrState": "Error",
             "labels": {
                 "category": alert["category"],
+                "domain": "observability",
                 "pipeline": "rfc6035-2otel",
                 "service": "rfc6035-2otel",
                 "severity": "warning",
