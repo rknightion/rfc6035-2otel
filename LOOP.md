@@ -5,12 +5,29 @@ ci-required: ci-success
 release-on-push: yes
 deploy-on-push: yes
 grafana-stack: robknight
+tracker: github
+landing: pr
 
 Public repository: no phone number, SIP URI, MAC, host or handset name, lab IP, handset serial,
 Grafana stack hostname or ID, tenant or account ID, credential or capture payload in any tracked
-file, `backlog/` included. Use the placeholder vocabulary in `archive/README.md` (`HOST-A`,
-`PHONE-A`). AGENTS.md carries the leak sweep to run over `backlog/`. Run `just` with stdin from
+file, issue, pull request or comment, `.github/tracker/history/` included. Use the placeholder
+vocabulary in `archive/README.md` (`HOST-A`, `PHONE-A`). The privacy sweep check on every pull request
+enforces the shapes; host and handset names are checked by eye. Run `just` with stdin from
 `/dev/null`. `just ci` adds the cross-compilation snapshot and the image build.
+
+The tracker working model is `~/repos/agent-docs/docs/github-tracker.md` (maintainers only).
+
+## Queue
+
+- The queue is `just tracker queue`: open issues at Project Status Ready on the rknightion Project.
+- A charter selects work by labels (`fixtures`, `parser`, `live-calls`, `type:task`, `type:bug`,
+  `type:feature`, `needs-owner`, `needs-triage`) and Project fields (Status, Priority, Effort, Lane).
+  Never queue a `needs-owner` or `needs-triage` issue, or the Renovate Dependency Dashboard (#26).
+- Only the root writes issues and the Project, through `just tracker`. A lane returns the status and
+  the AC ticks it wants.
+- A queue row names the issue as `#N`. A legacy board id (`VQR-0001`) resolves with `just issue <ID>`;
+  `.github/tracker/id-map.json` is the map. A bare `#N` below 119 is a pull request or one of the 19
+  issues deleted before the board began and recorded in `archive/issues.json`; imported and new issues start at #119.
 
 ## Credentials
 

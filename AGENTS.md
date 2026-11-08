@@ -7,8 +7,7 @@ OpenTelemetry metrics and logs.
 ## Task interface
 
 `just check` is the gate: `fmt-check`, `lint`, `vet`, `test`, `tidy-check`, `gen-check`, `build`,
-`vuln`, `fuzz`. It is CI's `build-test` job verbatim and the tracker's `definition_of_done`, so every
-task inherits it. `just ci` is the sanctioned superset, adding `snapshot` (cross-compilation) and
+`vuln`, `fuzz`. It is CI's `build-test` job verbatim. `just ci` is the sanctioned superset, adding `snapshot` (cross-compilation) and
 `image` (a Docker daemon); CI runs those two in separate parallel jobs.
 
 Run `just` with stdin from `/dev/null`. No recipe is marked `[confirm]`.
@@ -22,65 +21,34 @@ Off the Mac, when the remote gate runner is installed (`which gaterun`): `gateru
 `just check`), paced across lanes with `gaterun-slot <lane> -- gaterun -- just ci`; `.gaterunner.yaml`
 is its contract. Run one test or package locally.
 
-## Tracker
+## Tracking work
 
-Tasks are `VQR-NNNN` in `backlog/`.
+Work is tracked in this repository's GitHub issues; they are the only queue. Do not add a checklist
+file such as `ROADMAP.md` beside them.
 
-Loops: the protocol lives in `~/repos/agent-docs/sources/loop/` (this board's "Loop protocol pointer" doc points there); this repository's loop facts are in `LOOP.md`.
+- A pull request body says how it relates to an issue, on a line of its own: `Closes #N` with the
+  `Acceptance evidence` table from `.github/pull_request_template.md` (one row for each acceptance
+  criterion of that issue), `Refs #N` when it only relates to one, or `Task: none, <reason>`.
+- A pull request that changes `.github/workflows/` or `.github/actions/` carries no closing keyword:
+  write `Task: none, <reason>`, with `Refs #N` beside it if you like.
+- Contributors never need the project board or the tracker tooling; a maintainer handles both.
+- Older commits, docs and tests cite legacy board ids such as `VQR-0001`. `just issue <ID>` prints
+  the issue each one became; `.github/tracker/id-map.json` is the map.
 
-The **Closed GitHub issues (pre-Backlog history index)** doc maps each pre-migration issue to its
-resulting SHA; closed issues were deliberately not re-imported as tasks.
+## No identifiers in issues or pull requests
 
-`backlog task view VQR-0001 --plain` prints a task's own contract including its acceptance criteria.
+This is a public repository, so no real account identifier or personal data goes in an issue, pull
+request, comment or tracked file: no phone numbers, SIP URIs, MAC addresses, host or handset names,
+lab IP addresses, handset serials, Grafana stack hostnames or ids, tenant or account IDs,
+credentials, or capture payloads containing any of those. Write the shape, not the instance: "the
+second handset", "the collector host", `<dialect>/<sender>/<report>`. Aggregate counts, timings,
+metric names, CI run ids, commit SHAs and structural findings are fine, and so are SIP `Call-ID`
+values: they are per-call hashes that identify nothing.
 
-### Rules with no exceptions
-
-**`backlog/` is committed to a public repository**, so no real account identifier or personal data
-goes in a task or doc: no phone numbers, SIP URIs, MAC addresses, host or handset names, lab IP
-addresses, handset serials, Grafana stack hostnames or ids, tenant or account IDs, credentials, or
-capture payloads containing any of those. Write the shape, not the instance: "the second handset",
-"the collector host", `<dialect>/<sender>/<report>`. Aggregate counts, timings, metric names, CI run
-ids, commit SHAs and structural findings are fine, and so are SIP `Call-ID` values - they are
-per-call hashes that identify nothing.
-
-Use the same placeholder vocabulary as `archive/README.md` (`HOST-A`, `PHONE-A`, `PHONE-B`), so the
-two agree. The sweep below matches address and hostname *shapes* rather than listing the real names
-deliberately: a sweep that spells out the identifiers it hunts for plants them permanently in a
-tracked file, which is the leak it exists to prevent. Host and handset names are the one class you
-must check by eye.
-
-```bash
-grep -rniE '10\.0\.[0-9]|100\.(6[4-9]|[7-9][0-9])\.|grafana\.[a-z0-9-]+\.(com|net)|@gmail|sip:[0-9]{6,}|([0-9a-f]{2}:){5}[0-9a-f]{2}' backlog/ \
-  && echo "REVIEW EACH HIT"
-```
-
-**Do not build a workflow on `backlog decision`** - half-built upstream, with no `edit`, `view` or
-supersede mechanism. Durable reference goes in docs; tasks are the unit.
+Use the same placeholder vocabulary as `archive/README.md` (`HOST-A`, `PHONE-A`, `PHONE-B`). The
+privacy sweep check on every pull request matches address and hostname shapes; host and handset
+names are the one class you must check by eye.
 
 ## Git
 
 `codex/` and `docs/superpowers/` are ignored run scaffolding and never enter history.
-
-<!-- BACKLOG.MD GUIDELINES START -->
-<!-- backlog.md-instructions-version: 1.50.1 -->
-<CRITICAL_INSTRUCTION>
-
-## Backlog.md Workflow
-
-This project uses Backlog.md for task and project management.
-
-**For every user request in this project, run `backlog instructions overview` before answering or taking action.**
-
-Use the overview to decide whether to search, read, create, or update Backlog tasks.
-
-Before task lifecycle actions, read the matching detailed guide:
-- `backlog instructions task-creation` before creating or splitting tasks
-- `backlog instructions task-execution` before planning, changing status or assignee, adding a plan or implementation notes, or implementing task work
-- `backlog instructions task-finalization` before checking acceptance criteria, writing final summaries, or moving tasks to terminal statuses
-
-Use `backlog <command> --help` before running unfamiliar commands. Help shows options, fields, and examples.
-
-Do not edit Backlog task, draft, document, decision, or milestone markdown files directly. Use the `backlog` CLI so metadata, relationships, and history stay consistent.
-
-</CRITICAL_INSTRUCTION>
-<!-- BACKLOG.MD GUIDELINES END -->
