@@ -1,0 +1,22 @@
+{
+ "held": {},
+ "issues": {
+  "VQR-0001": {
+   "number": 119,
+   "url": "https://github.com/rknightion/rfc6035-2otel/issues/119"
+  },
+  "VQR-0002": {
+   "number": 120,
+   "url": "https://github.com/rknightion/rfc6035-2otel/issues/120"
+  },
+  "VQR-0003": {
+   "number": 121,
+   "url": "https://github.com/rknightion/rfc6035-2otel/issues/121"
+  }
+ },
+ "prefix": "VQR",
+ "repo": "rknightion/rfc6035-2otel",
+ "schema": 1,
+ "source_sha": "814e4f534006f16c821b324ad14643abe4f61514",
+ "synthetic": []
+}
