@@ -5,8 +5,9 @@
 immediately before the issues were deleted from GitHub. The issues no longer exist upstream, so this
 file is the record, not a pointer to one.
 
-Open work moved to the Backlog.md board in `backlog/` at the same time. `backlog/docs/doc-0003`
-indexes every closed issue against the commit that resolved it.
+Open work moved to a Backlog.md board at the same time, and the board has since moved to GitHub
+issues. The closed-issue index (the old `doc-0003`) lives under `.github/tracker/history/`; it maps
+every closed issue to the commit that resolved it.
 
 ## Reading it
 
