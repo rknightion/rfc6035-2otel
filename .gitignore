@@ -3,8 +3,9 @@
 # cannot leak by being named something a pattern did not anticipate.
 codex/
 
-# Claude Code repo-local config. `settings.json` and `hooks/` ARE tracked — they
-.claude/
+# Claude Code repo-local config. The contributor kit's `.claude/skills/` links are tracked.
+.claude/*
+!.claude/skills/
 
 # Build output
 /bin/
