@@ -1,0 +1,13 @@
+# Release Please output.
+/CHANGELOG.md linguist-generated=true
+/.release-please-manifest.json linguist-generated=true
+
+# Go module checksums covered by dependency review and govulncheck.
+/go.sum linguist-generated=true
+
+# Fully regenerated dashboard, alerts and chart reference.
+/alerts/grafana-managed/rfc6035-2otel-export-failures.json linguist-generated=true
+/alerts/grafana-managed/rfc6035-2otel-high-packet-loss.json linguist-generated=true
+/alerts/grafana-managed/rfc6035-2otel-unknown-sender-reports.json linguist-generated=true
+/dashboards/rfc6035-2otel.json linguist-generated=true
+/charts/rfc6035-2otel/README.md linguist-generated=true
