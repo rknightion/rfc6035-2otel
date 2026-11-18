@@ -111,6 +111,8 @@ jobs:
           file: Dockerfile
           push: false
           tags: rfc6035-2otel:ci
+          # Reuse the publisher's cache on matching PR runners.
+          cache-from: ${{ github.event_name == 'pull_request' && runner.os == 'Linux' && runner.arch == 'X64' && 'type=registry,ref=ghcr.io/rknightion/rfc6035-2otel:buildcache-linux-amd64' || '' }}
           build-args: |
             VERSION=ci-${{ github.sha }}
             COMMIT=${{ github.sha }}
