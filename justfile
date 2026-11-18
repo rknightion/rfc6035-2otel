@@ -29,6 +29,16 @@ default:
 setup: _install-golangci-lint _install-helm-docs
     go mod download
 
+# Warm the locked Go build, race-test and vulnerability tool caches for Cursor Cloud.
+[script('bash')]
+cloud-bootstrap: setup
+    set -euo pipefail
+    scratch="$(mktemp -d)"
+    trap 'rm -rf "$scratch"' EXIT
+    go build -mod=readonly ./...
+    go test -mod=readonly -race -c -o "$scratch/" ./...
+    GOBIN="$scratch" go install golang.org/x/vuln/cmd/govulncheck@{{ govulncheck_version }}
+
 # Install the pinned linter used by just lint.
 [private]
 _install-golangci-lint:
