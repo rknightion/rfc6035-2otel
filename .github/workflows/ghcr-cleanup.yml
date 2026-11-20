@@ -21,7 +21,7 @@ jobs:
     permissions:
       contents: read
       packages: write # delete package versions
-    uses: rknightion/.github/.github/workflows/ghcr-cleanup.yml@26a39c358af3086bddffaeb336fa1d4481db8eb5 # v1.30.18
+    uses: rknightion/.github/.github/workflows/ghcr-cleanup.yml@c8798820077ecaed4714117fafbfb5e9847fe18c # v1.30.19
     with:
       packages: "rfc6035-2otel,charts/rfc6035-2otel"
       # Scheduled runs prune for real; a manual dispatch defaults to dry-run.
