@@ -42,7 +42,7 @@ jobs:
     name: helm schema validate (kubeconform)
     permissions:
       contents: read
-    uses: rknightion/.github/.github/workflows/helm-validate.yml@0e637bfda82f83329a87463eb9f56037a4fff773 # v1.30.14
+    uses: rknightion/.github/.github/workflows/helm-validate.yml@8256182a8405679c93c11638c1d998c2f6e8f74b # v1.30.15
     with:
       chart-path: charts/rfc6035-2otel
       kubernetes-versions: "1.29.0"
