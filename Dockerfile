@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 # The static runtime supplies the CA bundle required for OTLP/HTTPS and has no
 # shell or package manager. UID/GID 65532 is its nonroot identity.
-FROM gcr.io/distroless/static-debian13:nonroot@sha256:aafe993665bf6200db38a02c11a9351e782a84b6a45e7f33b6695638c88e3931
+FROM gcr.io/distroless/static-debian13:nonroot@sha256:8ce6dd87e9823c5b48dcfb2c8604714ccb351ce59607327bcc4957448da279b5
 COPY --from=build /out/rfc6035-2otel /usr/local/bin/rfc6035-2otel
 USER 65532:65532
 HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
