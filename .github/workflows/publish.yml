@@ -46,7 +46,7 @@ jobs:
       id-token: write # obtains keyless signing credentials
       attestations: write # publishes provenance attestations
       security-events: write # uploads container scan results
-    uses: rknightion/.github/.github/workflows/container-publish.yml@8ea95233ce0b1b2880124f745238e8d194524365 # v1.32.1
+    uses: rknightion/.github/.github/workflows/container-publish.yml@40b04a8393537f0aaf610e9286a5d4af44f98455 # v1.32.2
     with:
       trivy-ignore-unfixed: true
       release-tag: ${{ inputs.release_tag }}
