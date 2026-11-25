@@ -102,19 +102,6 @@ Off the Mac, when the remote gate runner is installed (`which gaterun`): `gateru
 `just check`), paced across lanes with `gaterun-slot <lane> -- gaterun -- just ci`; `.gaterunner.yaml`
 is its contract. Run one test or package locally.
 
-## Cursor Cloud specific instructions
-
-The pinned [environment](.cursor/environment.json) runs `just cloud-bootstrap`.
-It reuses `just setup` and warms the Go build, race-test, and vulnerability tool
-caches. Temporary test and tool binaries are removed after compilation.
-
-- Fast check: `go test -race ./internal/vqreport -run '^TestParseFoldedLines$' </dev/null`.
-- Full gate: `just check </dev/null`. Use hosted CI for Docker builds, release
-  snapshots, and Helm checks.
-- For a local binary smoke, run `just build </dev/null` and
-  `bin/rfc6035-2otel -version`. The collector listens for SIP. Live handset and
-  telemetry checks require a separate environment with authorized access.
-
 ## Tracking work
 
 Work is tracked in this repository's GitHub issues; they are the only queue. Do not add a checklist
