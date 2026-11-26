@@ -20,7 +20,7 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - id: bao
-        uses: rknightion/.github/.github/actions/broker-token@20533b678728ec119e52401c1e48b31f3c8b83c4 # v1.32.5
+        uses: rknightion/.github/.github/actions/broker-token@b31fba795a67b1a413ec1e11a7cd4ac9c2447f15 # v1.32.7
         with:
           permission-set: release-please-rfc6035-2otel
           role: release-please-rfc6035-2otel
@@ -64,7 +64,7 @@ jobs:
       id-token: write # obtains keyless signing credentials
       packages: write # supports reusable release tooling package access
       attestations: write # publishes provenance attestations
-    uses: rknightion/.github/.github/workflows/binaries.yml@20533b678728ec119e52401c1e48b31f3c8b83c4 # v1.32.5
+    uses: rknightion/.github/.github/workflows/binaries.yml@b31fba795a67b1a413ec1e11a7cd4ac9c2447f15 # v1.32.7
     with:
       release-tag: ${{ needs.release-please.outputs.tag_name }}
       install-cosign: true
